@@ -9,6 +9,11 @@ pub struct SudoPayload {
     pub port_id: String,
 }
 
+#[cw_serde]
+pub struct Proposal {
+    pub description: String,
+}
+
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 
 pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
@@ -21,6 +26,12 @@ pub const ACKNOWLEDGEMENT_RESULTS: Map<(String, u64), AcknowledgementResult> =
     Map::new("acknowledgement_results");
 
 pub const ERRORS_QUEUE: Map<u32, String> = Map::new("errors_queue");
+
+
+
+pub static  Proposals: Map<u64, AcknowledgementResult> =
+    Map::new("proposals");
+
 
 #[cw_serde]
 pub enum AcknowledgementResult {

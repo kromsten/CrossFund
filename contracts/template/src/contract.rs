@@ -74,42 +74,12 @@ pub fn execute(
 ) -> NeutronResult<Response<NeutronMsg>> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
-    match msg {
-        ExecuteMsg::Register {
-            connection_id,
-            interchain_account_id,
-        } => execute_register_ica(deps, env, connection_id, interchain_account_id),
-        ExecuteMsg::Delegate {
-            validator,
-            interchain_account_id,
-            amount,
-            denom,
-            timeout,
-        } => execute_delegate(
-            deps,
-            env,
-            interchain_account_id,
-            validator,
-            amount,
-            denom,
-            timeout,
-        ),
-        ExecuteMsg::Undelegate {
-            validator,
-            interchain_account_id,
-            amount,
-            denom,
-            timeout,
-        } => execute_undelegate(
-            deps,
-            env,
-            interchain_account_id,
-            validator,
-            amount,
-            denom,
-            timeout,
-        ),
-    }
+    match msg {ExecuteMsg::Register{connection_id,interchain_account_id,}=>execute_register_ica(deps,env,connection_id,interchain_account_id),ExecuteMsg::Delegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_delegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),ExecuteMsg::Undelegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_undelegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
+    ExecuteMsg::SubmitProposal { description } => todo!(),
+    ExecuteMsg::SubmitConfiguration {  } => todo!(),
+    ExecuteMsg::Fund {  } => todo!(),
+    ExecuteMsg::Vote {  } => todo!(),
+    ExecuteMsg::Verify {  } => todo!(), }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -163,7 +133,7 @@ pub fn query_acknowledgement_result(
     interchain_account_id: String,
     sequence_id: u64,
 ) -> NeutronResult<Binary> {
-    let port_id = get_port_id(env.contract.address.as_str(), &interchain_account_id);
+    let port_id: String = get_port_id(env.contract.address.as_str(), &interchain_account_id);
     let res = ACKNOWLEDGEMENT_RESULTS.may_load(deps.storage, (port_id, sequence_id))?;
     Ok(to_binary(&res)?)
 }
@@ -206,8 +176,6 @@ fn execute_delegate(
     denom: String,
     timeout: Option<u64>,
 ) -> NeutronResult<Response<NeutronMsg>> {
-    // contract must pay for relaying of acknowledgements
-    // See more info here: https://docs.neutron.org/neutron/feerefunder/overview
     let fee = min_ntrn_ibc_fee(query_min_ibc_fee(deps.as_ref())?.min_fee);
     let (delegator, connection_id) = get_ica(deps.as_ref(), &env, &interchain_account_id)?;
     let delegate_msg = MsgDelegate {
@@ -255,6 +223,7 @@ fn execute_delegate(
 
     Ok(Response::default().add_submessages(vec![submsg]))
 }
+
 
 fn execute_undelegate(
     mut deps: DepsMut<NeutronQuery>,

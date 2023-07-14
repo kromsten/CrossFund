@@ -49,4 +49,12 @@ pub enum ExecuteMsg {
         denom: String,
         timeout: Option<u64>,
     },
+
+    SubmitProposal {
+        description: String
+    },
+    SubmitConfiguration {},
+    Fund {},
+    Vote {},
+    Verify {}
 }
