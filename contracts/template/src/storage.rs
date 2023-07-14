@@ -20,6 +20,7 @@ pub struct GoodFee {
 
 #[cw_serde]
 pub struct ProjectFunding {
+    pub sender: Addr,
     pub amount: Uint128,
     pub auto_agree: bool,
     pub native: bool,
@@ -28,6 +29,7 @@ pub struct ProjectFunding {
 impl Default for ProjectFunding {
     fn default() -> Self {
         ProjectFunding {
+            sender: Addr::unchecked(""),
             amount: Uint128::zero(),
             auto_agree: false,
             native: true
@@ -36,7 +38,7 @@ impl Default for ProjectFunding {
 }
 
 #[cw_serde]
-pub struct LockedFunds {
+pub struct CustodyFunds {
     pub amount: Uint128,
     pub proposal_id: u64,
     pub locked: bool
@@ -63,14 +65,12 @@ pub struct Application {
 
 pub static PROPOSAL_INDEX : Item<u64> = Item::new("proposal_index");
 pub static PROPOSALS: Map<u64, Proposal> = Map::new("proposals");
-
 pub static PROPOSAL_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("project_funding");
-pub static TOTAL_PROPOSAL_FUNDING: Map<(u64, &str), Uint128>  = Map::new("total_project_funding");
-
-pub static LOCKED_FUNDS: Map<(Addr, &str), LockedFunds>  = Map::new("locked_funds");
 
 pub static APPLICATIONS: Map<(u64, Addr), Application> = Map::new("applications");
 pub static APPLICATION_FUNDING: Map<(u64, Addr, &str), Uint128> = Map::new("application_funding");
+
+pub static CUSTODY_FUNDS: Map<(Addr, &str), CustodyFunds>  = Map::new("custody_funds");
 
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;

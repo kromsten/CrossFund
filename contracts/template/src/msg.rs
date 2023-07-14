@@ -2,7 +2,7 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Response, Uint128};
 use neutron_sdk::{NeutronResult, bindings::msg::NeutronMsg};
 
-use crate::storage::{Application, Proposal};
+use crate::storage::{Application, Proposal, ProjectFunding};
 
 
 pub type ExecuteResponse = NeutronResult<Response<NeutronMsg>>;
@@ -89,7 +89,7 @@ pub struct FullProposalInfo {
     pub id: u64,
     pub title: String,
     pub description: String,
-    pub funding: Vec<(String, Uint128)>,
+    pub funding: Vec<(String, ProjectFunding)>,
     pub applications: Vec<(Addr, Application)>
 }
 

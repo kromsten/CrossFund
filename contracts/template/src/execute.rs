@@ -1,7 +1,7 @@
-use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult};
+use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, LOCKED_FUNDS, APPLICATIONS, LockedFunds, TOTAL_PROPOSAL_FUNDING, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::valid_application, msg::ExecuteResponse};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::valid_application, msg::ExecuteResponse, query::{query_application_funds, query_proposal_funds_token, query_proposal_funds}};
 
 
 pub fn submit_proposal(
@@ -36,7 +36,6 @@ pub fn fund_proposal_native(
 ) -> ExecuteResponse {
 
     let sender = info.sender;
-    let total = TOTAL_PROPOSAL_FUNDING.load(store, (proposal_id, sender.as_ref())).unwrap_or_default();
 
     for coin in info.funds {
         if coin.amount == Uint128::zero() {
@@ -45,12 +44,11 @@ pub fn fund_proposal_native(
         let mut funding = PROPOSAL_FUNDING.load(store, (proposal_id, coin.denom.as_str())).unwrap_or_default();
         funding.amount += coin.amount;
         funding.auto_agree = auto_agree.unwrap_or(false);
-        
+        funding.sender = sender.clone();
 
         PROPOSAL_FUNDING.save(store, (proposal_id, sender.as_ref()), &funding)?;
-        TOTAL_PROPOSAL_FUNDING.save(store, (proposal_id, sender.as_ref()), &(total + funding.amount))?;
 
-        LOCKED_FUNDS.save(store, (sender.clone(), coin.denom.as_str()), &LockedFunds {
+        CUSTODY_FUNDS.save(store, (sender.clone(), coin.denom.as_str()), &CustodyFunds {
             amount: coin.amount,
             proposal_id,
             locked: false
@@ -69,7 +67,7 @@ pub fn approve_application(
     application_sender: Addr
 ) -> ExecuteResponse {
 
-    let user_funds = LOCKED_FUNDS
+    let user_funds = CUSTODY_FUNDS
         .prefix(sender.clone())
         .range(store, None, None, Order::Ascending)
         .map(|f| f.unwrap())
@@ -89,7 +87,7 @@ pub fn approve_application(
             .unwrap_or_default();
 
         APPLICATION_FUNDING.save(store, (proposal_id, application_sender.clone(), key.as_str()), &(existing + value.amount))?;
-        LOCKED_FUNDS.save(store, (sender.clone(), key.as_str()), &LockedFunds {
+        CUSTODY_FUNDS.save(store, (sender.clone(), key.as_str()), &CustodyFunds {
             amount: value.amount,
             proposal_id,
             locked: true
@@ -137,10 +135,9 @@ pub fn accept(
     }
 
     application.accepted = true;
-
-
     APPLICATIONS.save(store, (proposal_id, application_sender.clone()), &application)?;
 
+    check_for_auto_agree(store, proposal_id, application_sender)?;
 
     Ok(Response::default())
 }
@@ -170,7 +167,7 @@ pub fn verify_application(
     APPLICATIONS.save(store, (proposal_id, application_sender.clone()), &application)?;
 
     if (application.auditors.len() == application.verifications.len()) {
-        // TODO: release funds
+        reward_applicants(store, sender, proposal_id, application_sender, stop_at)?;
     }
 
     Ok(Response::default())
@@ -189,6 +186,48 @@ fn reward_applicants(
 }
 
 
+fn check_for_auto_agree(
+    store: &mut dyn Storage,
+    proposal_id: u64,
+    application_sender: Addr,
+) -> StdResult<()> {
+    for (token, amount) in  query_application_funds(store, proposal_id, application_sender)? {
+        let total = query_proposal_funds_token(store, proposal_id.clone(), token.as_str())?;
+        let ratio = Decimal::from_ratio(amount, total);
+        if ratio > Decimal::percent(50) {
+            auto_agree(store, proposal_id)?;
+        }
+    }
+    Ok(())
+}
 
 
+fn auto_agree(
+    store: &mut dyn Storage,
+    proposal_id: u64,
+) -> StdResult<()> {
 
+    let funds = query_proposal_funds(store, proposal_id, Some(true))?;
+
+    for (token, funding) in funds {
+        
+        CUSTODY_FUNDS.update(store, (funding.sender.clone(), token.as_str()), |f| {
+            match f {
+                Some(mut f) => {
+                    f.locked = true;
+                    Ok(f)
+                },
+                None => Err(StdError::not_found("Custody funds"))
+            }
+        })?;
+
+        APPLICATION_FUNDING.update(store, (proposal_id, funding.sender.clone(), token.as_str()), |f| {
+            match f {
+                Some(f) => Ok(f + funding.amount),
+                None => Err(StdError::not_found("Application funds"))
+            }
+        })?;
+    }
+
+    Ok(())
+}
