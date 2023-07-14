@@ -52,11 +52,11 @@ pub struct Proposal {
 
 #[cw_serde]
 pub struct Application {
-    pub submitter: Addr,
     pub applicants: Vec<GoodFee>, 
     pub auditors: Vec<GoodFee>,
     pub deliver_by: Expiration,
 
+    pub accepted: bool,
     pub verifications: Vec<Addr>
 }
 
@@ -64,9 +64,8 @@ pub struct Application {
 pub static PROPOSAL_INDEX : Item<u64> = Item::new("proposal_index");
 pub static PROPOSALS: Map<u64, Proposal> = Map::new("proposals");
 
-
-pub static PROJECT_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("project_funding");
-pub static TOTAL_PROJECT_FUNDING: Map<(u64, &str), Uint128>  = Map::new("total_project_funding");
+pub static PROPOSAL_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("project_funding");
+pub static TOTAL_PROPOSAL_FUNDING: Map<(u64, &str), Uint128>  = Map::new("total_project_funding");
 
 pub static LOCKED_FUNDS: Map<(Addr, &str), LockedFunds>  = Map::new("locked_funds");
 

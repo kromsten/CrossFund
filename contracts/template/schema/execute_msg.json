@@ -181,13 +181,16 @@
     "Application": {
       "type": "object",
       "required": [
+        "accepted",
         "applicants",
         "auditors",
         "deliver_by",
-        "submitter",
         "verifications"
       ],
       "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
         "applicants": {
           "type": "array",
           "items": {
@@ -202,9 +205,6 @@
         },
         "deliver_by": {
           "$ref": "#/definitions/Expiration"
-        },
-        "submitter": {
-          "$ref": "#/definitions/Addr"
         },
         "verifications": {
           "type": "array",

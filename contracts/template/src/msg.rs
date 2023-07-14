@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Response};
+use cosmwasm_std::{Addr, Response, Uint128};
 use neutron_sdk::{NeutronResult, bindings::msg::NeutronMsg};
 
 use crate::storage::{Application, Proposal};
@@ -84,9 +84,17 @@ pub enum ExecuteMsg {
 }
 
 
+#[cw_serde]
+pub struct FullProposalInfo {
+    pub id: u64,
+    pub title: String,
+    pub description: String,
+    pub funding: Vec<(String, Uint128)>,
+    pub applications: Vec<(Addr, Application)>
+}
 
 
 #[cw_serde]
 pub struct AllProposalResponse {
-    pub proposals: Vec<(u64, Proposal)>
+    pub proposals: Vec<FullProposalInfo>
 }

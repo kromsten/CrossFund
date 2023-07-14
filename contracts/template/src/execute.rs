@@ -1,7 +1,7 @@
 use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROJECT_FUNDING, Proposal, LOCKED_FUNDS, APPLICATIONS, LockedFunds, TOTAL_PROJECT_FUNDING, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::valid_application, msg::ExecuteResponse};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, LOCKED_FUNDS, APPLICATIONS, LockedFunds, TOTAL_PROPOSAL_FUNDING, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::valid_application, msg::ExecuteResponse};
 
 
 pub fn submit_proposal(
@@ -36,19 +36,19 @@ pub fn fund_proposal_native(
 ) -> ExecuteResponse {
 
     let sender = info.sender;
-    let total = TOTAL_PROJECT_FUNDING.load(store, (proposal_id, sender.as_ref())).unwrap_or_default();
+    let total = TOTAL_PROPOSAL_FUNDING.load(store, (proposal_id, sender.as_ref())).unwrap_or_default();
 
     for coin in info.funds {
         if coin.amount == Uint128::zero() {
             continue;
         }
-        let mut funding = PROJECT_FUNDING.load(store, (proposal_id, coin.denom.as_str())).unwrap_or_default();
+        let mut funding = PROPOSAL_FUNDING.load(store, (proposal_id, coin.denom.as_str())).unwrap_or_default();
         funding.amount += coin.amount;
         funding.auto_agree = auto_agree.unwrap_or(false);
         
 
-        PROJECT_FUNDING.save(store, (proposal_id, sender.as_ref()), &funding)?;
-        TOTAL_PROJECT_FUNDING.save(store, (proposal_id, sender.as_ref()), &(total + funding.amount))?;
+        PROPOSAL_FUNDING.save(store, (proposal_id, sender.as_ref()), &funding)?;
+        TOTAL_PROPOSAL_FUNDING.save(store, (proposal_id, sender.as_ref()), &(total + funding.amount))?;
 
         LOCKED_FUNDS.save(store, (sender.clone(), coin.denom.as_str()), &LockedFunds {
             amount: coin.amount,
@@ -125,22 +125,24 @@ pub fn register_ica(
 
 pub fn accept(
     store: &mut dyn Storage,
-    env: Env,
-    connection_id: String,
+    sender: Addr,
     proposal_id: u64,
+    application_sender: Addr,
 ) -> ExecuteResponse {
 
-    let register =
-        NeutronMsg::register_interchain_account(connection_id, proposal_id.clone().to_string());
-    
-    let key = get_port_id(env.contract.address.as_str(), &proposal_id.to_string());
-    // we are saving empty data here because we handle response of registering ICA in sudo_open_ack method
-    
-    INTERCHAIN_ACCOUNTS.save(store, key, &None)?;
-    
-    Ok(Response::new()
-        .add_message(register)
-    )
+    let mut application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
+
+    if sender != application_sender &&  application.applicants.iter().all(|a| a.recipient != &sender) {
+        return Err(NeutronError::NonAuthorized{});
+    }
+
+    application.accepted = true;
+
+
+    APPLICATIONS.save(store, (proposal_id, application_sender.clone()), &application)?;
+
+
+    Ok(Response::default())
 }
 
 

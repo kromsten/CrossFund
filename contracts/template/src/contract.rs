@@ -116,6 +116,7 @@ pub fn execute(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
+
     match msg {
         QueryMsg::InterchainAccountAddress {
             interchain_account_id,
