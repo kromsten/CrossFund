@@ -1,4 +1,4 @@
-use cosmwasm_std::{from_binary, to_vec, Binary, Order, StdResult, Storage};
+use cosmwasm_std::{from_binary, to_vec, Binary, Order, StdResult, Storage, Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 use cosmwasm_schema::cw_serde;
 
@@ -9,10 +9,51 @@ pub struct SudoPayload {
     pub port_id: String,
 }
 
+
+#[cw_serde]
+pub struct GoodFee {
+    pub recipient: Addr,
+    pub bp_share: u16
+}
+
+
+#[cw_serde]
+pub struct Funding {
+    amount: Uint128,
+    native: bool,
+    auto_agree: bool
+}
+
+#[cw_serde]
+pub struct Fund {}
+
+
 #[cw_serde]
 pub struct Proposal {
     pub description: String,
+    pub funding: Vec<Funding>
 }
+
+#[cw_serde]
+pub struct Configuration {
+    pub proposal_id: u64,
+    pub completors: Vec<GoodFee>, 
+    pub auditors: Vec<GoodFee>
+}
+
+
+
+pub static PROPOSAL_INDEX : Item<u64> = Item::new("proposal_index");
+pub static PROPOSALS: Map<u64, Proposal> = Map::new("proposals");
+
+
+pub static CONFIGURATIONS: Map<(u64, Addr), Configuration> = Map::new("configurations");
+
+
+pub static FUNDINGS: Map<(u64, &str), Funding>  = Map::new("fundings");
+pub static ABAILABLE_FUNDS: Map<Addr, Fund>  = Map::new("availbale_funds");
+
+
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 
@@ -29,8 +70,9 @@ pub const ERRORS_QUEUE: Map<u32, String> = Map::new("errors_queue");
 
 
 
-pub static  Proposals: Map<u64, AcknowledgementResult> =
-    Map::new("proposals");
+
+
+
 
 
 #[cw_serde]

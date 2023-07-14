@@ -1,8 +1,8 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use cosmwasm_schema::cw_serde;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+use crate::storage::Configuration;
+
+#[cw_serde]
 pub enum QueryMsg {
     /// this query goes to neutron and get stored ICA with a specific query
     InterchainAccountAddress {
@@ -22,14 +22,13 @@ pub enum QueryMsg {
     ErrorsQueue {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cw_serde]
 pub struct MigrateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cw_serde]
 pub struct InstantiateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum ExecuteMsg {
     Register {
         connection_id: String,
@@ -53,7 +52,9 @@ pub enum ExecuteMsg {
     SubmitProposal {
         description: String
     },
-    SubmitConfiguration {},
+    SubmitConfiguration {
+        configuration: Configuration
+    },
     Fund {},
     Vote {},
     Verify {}
