@@ -55,7 +55,10 @@ pub enum NeutronError {
     NonAuthorized,
 
     #[error("Invalid application. Check that sum of shares is equal to 100")]
-    InvalidApplication
+    InvalidApplication,
+
+    #[error("No funds to withdraw or they are locked")]
+    NoFunds
 }
 
 impl From<serde_json_wasm::de::Error> for NeutronError {

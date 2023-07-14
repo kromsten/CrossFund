@@ -1,6 +1,6 @@
 use cosmwasm_std::{Storage, Order, StdResult, Uint128, Addr};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_FUNDING, APPLICATIONS, Proposal, Application, APPLICATION_FUNDING, ProjectFunding}, msg::{AllProposalResponse, FullProposalInfo}};
+use crate::{storage::{PROPOSALS, PROPOSAL_FUNDING, APPLICATIONS, Proposal, Application, APPLICATION_FUNDING, ProjectFunding, CustodyFunds, CUSTODY_FUNDS}, msg::{AllProposalResponse, FullProposalInfo}};
 
 
 
@@ -116,3 +116,28 @@ pub fn query_application_funds_token(
     Ok(APPLICATION_FUNDING.load(store, (proposal_id, application_sender, token.as_str()))?)
 }
 
+
+
+pub fn query_address_funds(
+    store: &dyn Storage,
+    address: &Addr,
+    skip_locked: bool
+) -> StdResult<Vec<(String, CustodyFunds)>> {
+
+    Ok(CUSTODY_FUNDS
+        .prefix(address.clone())
+        .range(store, None, None, Order::Ascending)
+        .map(|f| f.unwrap())
+        .filter(|(_, custody_funds)| !(skip_locked && custody_funds.locked))
+        .collect::<Vec<_>>()
+    )
+
+}
+// locked not locked
+// 1  0
+
+// skip not skip
+// 1  0
+
+// xor
+// 

@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
-use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError};
+use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError, CosmosMsg, BankMsg, coins};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::ExecuteResponse, query::{query_application_funds, query_proposal_funds_token, query_proposal_funds}};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::ExecuteResponse, query::{query_application_funds, query_proposal_funds_token, query_proposal_funds, query_address_funds}};
 
 
 pub fn submit_proposal(
@@ -125,7 +123,7 @@ pub fn register_ica(
 
 
 
-pub fn accept(
+pub fn accept_application(
     store: &mut dyn Storage,
     sender: Addr,
     proposal_id: u64,
@@ -153,7 +151,6 @@ pub fn verify_application(
     sender: Addr,
     proposal_id: u64,
     application_sender: Addr,
-    stop_at: Option<u64>
 ) -> ExecuteResponse {
 
     let mut application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
@@ -178,6 +175,28 @@ pub fn verify_application(
 }
 
 
+
+pub fn withdraw_funds(
+    store: &mut dyn Storage,
+    sender: Addr,
+) -> ExecuteResponse {
+
+    let funds = query_address_funds(store, &sender, true)?;
+
+    if funds.is_empty() {
+        return Err(NeutronError::NoFunds{});
+    }
+
+    let messages : Vec::<CosmosMsg<NeutronMsg>> = funds
+        .iter()
+        .map(|(token, fund)| send_back_msg( &sender, token, fund))
+        .collect();
+
+    Ok(Response::default().add_messages(messages))
+
+}
+
+
 fn reward_applicants(
     store: &mut dyn Storage,
     proposal_id: u64,
@@ -186,7 +205,7 @@ fn reward_applicants(
 
     let application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
     
-    let funds : Vec<(((Addr, String), CustodyFunds))> = CUSTODY_FUNDS
+    let funds : Vec<((Addr, String), CustodyFunds)> = CUSTODY_FUNDS
         .range(store, None, None, Order::Ascending)
         .filter(|f| {
             let funds = &f.as_ref().unwrap().1;
@@ -269,4 +288,19 @@ fn auto_agree(
     }
 
     Ok(())
+}
+
+
+fn send_back_msg(
+    sender: &Addr,
+    token: &String,
+    fund: &CustodyFunds,
+) -> CosmosMsg<NeutronMsg> {
+
+    let send = BankMsg::Send {
+        to_address: sender.clone().to_string(),
+        amount: coins(fund.amount.u128(), token),
+    };
+
+    send.into()
 }

@@ -1,8 +1,8 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Response, Uint128};
+use cosmwasm_std::{Addr, Response};
 use neutron_sdk::{NeutronResult, bindings::msg::NeutronMsg};
 
-use crate::storage::{Application, Proposal, ProjectFunding};
+use crate::storage::{Application, ProjectFunding};
 
 
 pub type ExecuteResponse = NeutronResult<Response<NeutronMsg>>;
@@ -72,6 +72,11 @@ pub enum ExecuteMsg {
         connection_id: String,
     },
     ApproveApplication {
+        proposal_id: u64,
+        application_sender: Addr,
+    },
+
+    AcceptApplication {
         proposal_id: u64,
         application_sender: Addr,
     },

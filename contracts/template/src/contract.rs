@@ -14,7 +14,7 @@ use cw2::set_contract_version;
 use prost::Message;
 
 
-use crate::execute::{submit_proposal, fund_proposal_native, submit_application, approve_application, register_ica, verify_application};
+use crate::execute::{submit_proposal, fund_proposal_native, submit_application, approve_application, register_ica, verify_application, accept_application};
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, ExecuteResponse};
 use neutron_sdk::bindings::msg::IbcFee;
 use neutron_sdk::{
@@ -104,12 +104,16 @@ pub fn execute(
             connection_id,
             proposal_id)
         ,
+        ExecuteMsg::AcceptApplication { 
+            proposal_id, 
+            application_sender 
+        } => accept_application(deps.storage, info.sender, proposal_id, application_sender),
 
         ExecuteMsg::VerifyApplication { 
             proposal_id, 
             application_sender,
-            stop_at 
-        } => verify_application(deps.storage, info.sender, proposal_id, application_sender, stop_at)
+            stop_at: _ 
+        } => verify_application(deps.storage, info.sender, proposal_id, application_sender)
     }
 }
 
