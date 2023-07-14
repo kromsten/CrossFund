@@ -1,6 +1,7 @@
 use cosmwasm_std::{from_binary, to_vec, Binary, Order, StdResult, Storage, Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 use cosmwasm_schema::cw_serde;
+use cw_utils::Expiration;
 
 
 #[cw_serde]
@@ -51,8 +52,12 @@ pub struct Proposal {
 
 #[cw_serde]
 pub struct Application {
-    pub completors: Vec<GoodFee>, 
-    pub auditors: Vec<GoodFee>
+    pub submitter: Addr,
+    pub applicants: Vec<GoodFee>, 
+    pub auditors: Vec<GoodFee>,
+    pub deliver_by: Expiration,
+
+    pub verifications: Vec<Addr>
 }
 
 
@@ -65,9 +70,8 @@ pub static TOTAL_PROJECT_FUNDING: Map<(u64, &str), Uint128>  = Map::new("total_p
 
 pub static LOCKED_FUNDS: Map<(Addr, &str), LockedFunds>  = Map::new("locked_funds");
 
-pub static APPLICATIONS: Map<(u64, Addr), Application> = Map::new("configurations");
-pub static APPLICATION_FUNDING: Map<(u64, Addr, &str), Uint128> = Map::new("applications");
-
+pub static APPLICATIONS: Map<(u64, Addr), Application> = Map::new("applications");
+pub static APPLICATION_FUNDING: Map<(u64, Addr, &str), Uint128> = Map::new("application_funding");
 
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;

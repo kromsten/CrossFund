@@ -1,14 +1,14 @@
-use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order};
-use neutron_sdk::{NeutronResult, NeutronError};
+use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult};
+use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROJECT_FUNDING, Proposal, LOCKED_FUNDS, APPLICATIONS, LockedFunds, TOTAL_PROJECT_FUNDING, APPLICATION_FUNDING}, utils::valid_application};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROJECT_FUNDING, Proposal, LOCKED_FUNDS, APPLICATIONS, LockedFunds, TOTAL_PROJECT_FUNDING, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::valid_application, msg::ExecuteResponse};
 
 
 pub fn submit_proposal(
     store: &mut dyn Storage,
     title: String,
     description: String
-) -> NeutronResult<Response> {
+) -> ExecuteResponse {
     let index = PROPOSAL_INDEX.load(store).unwrap_or(0);
     PROPOSALS.save(store, index.clone(), &Proposal { title, description, funding: Vec::new() })?;
     PROPOSAL_INDEX.save(store, &(index+1))?;
@@ -21,7 +21,7 @@ pub fn submit_application(
     sender: Addr,
     proposal_id: u64,
     application: Application
-) -> NeutronResult<Response> {
+) -> ExecuteResponse {
     valid_application(&application)?;
     APPLICATIONS.save(store, (proposal_id, sender), &application)?;
     Ok(Response::default())
@@ -33,7 +33,7 @@ pub fn fund_proposal_native(
     info: MessageInfo,
     proposal_id: u64,
     auto_agree: Option<bool>
-) -> NeutronResult<Response> {
+) -> ExecuteResponse {
 
     let sender = info.sender;
     let total = TOTAL_PROJECT_FUNDING.load(store, (proposal_id, sender.as_ref())).unwrap_or_default();
@@ -62,12 +62,12 @@ pub fn fund_proposal_native(
 
 
 
-pub fn vote_for_application(
+pub fn approve_application(
     store: &mut dyn Storage,
     sender: Addr,
     proposal_id: u64,
     application_sender: Addr
-) -> NeutronResult<Response> {
+) -> ExecuteResponse {
 
     let user_funds = LOCKED_FUNDS
         .prefix(sender.clone())
@@ -98,5 +98,95 @@ pub fn vote_for_application(
 
     Ok(Response::default())
 }
+
+
+
+pub fn register_ica(
+    store: &mut dyn Storage,
+    env: Env,
+    connection_id: String,
+    proposal_id: u64,
+) -> ExecuteResponse {
+
+    let register =
+        NeutronMsg::register_interchain_account(connection_id, proposal_id.clone().to_string());
+    
+    let key = get_port_id(env.contract.address.as_str(), &proposal_id.to_string());
+    // we are saving empty data here because we handle response of registering ICA in sudo_open_ack method
+    
+    INTERCHAIN_ACCOUNTS.save(store, key, &None)?;
+    
+    Ok(Response::new()
+        .add_message(register)
+    )
+}
+
+
+
+pub fn accept(
+    store: &mut dyn Storage,
+    env: Env,
+    connection_id: String,
+    proposal_id: u64,
+) -> ExecuteResponse {
+
+    let register =
+        NeutronMsg::register_interchain_account(connection_id, proposal_id.clone().to_string());
+    
+    let key = get_port_id(env.contract.address.as_str(), &proposal_id.to_string());
+    // we are saving empty data here because we handle response of registering ICA in sudo_open_ack method
+    
+    INTERCHAIN_ACCOUNTS.save(store, key, &None)?;
+    
+    Ok(Response::new()
+        .add_message(register)
+    )
+}
+
+
+
+pub fn verify_application(
+    store: &mut dyn Storage,
+    sender: Addr,
+    proposal_id: u64,
+    application_sender: Addr,
+    stop_at: Option<u64>
+) -> ExecuteResponse {
+
+    let mut application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
+
+    if application.auditors.iter().all(|a| a.recipient != &sender) {
+        return Err(NeutronError::NonAuthorized{});
+    }
+
+    if application.verifications.iter().any(|v| v == &sender) {
+        return Err(NeutronError::AlreadyVerified{});
+    }
+
+    application.verifications.push(sender.clone());
+    
+    APPLICATIONS.save(store, (proposal_id, application_sender.clone()), &application)?;
+
+    if (application.auditors.len() == application.verifications.len()) {
+        // TODO: release funds
+    }
+
+    Ok(Response::default())
+}
+
+
+fn reward_applicants(
+    store: &mut dyn Storage,
+    sender: Addr,
+    proposal_id: u64,
+    application_sender: Addr,
+    stop_at: Option<u64>
+) -> StdResult<()> {
+    // TODO
+    Ok(())
+}
+
+
+
 
 

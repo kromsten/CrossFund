@@ -2,6 +2,7 @@ use cosmos_sdk_proto::cosmos::base::v1beta1::Coin;
 use cosmos_sdk_proto::cosmos::staking::v1beta1::{
     MsgDelegate, MsgDelegateResponse, MsgUndelegate, MsgUndelegateResponse,
 };
+use cosmos_sdk_proto::ibc::core::connection;
 use cosmwasm_schema::cw_serde;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -13,8 +14,8 @@ use cw2::set_contract_version;
 use prost::Message;
 
 
-use crate::execute::{submit_proposal, fund_proposal_native, submit_application};
-use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use crate::execute::{submit_proposal, fund_proposal_native, submit_application, approve_application, register_ica, verify_application};
+use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, ExecuteResponse};
 use neutron_sdk::bindings::msg::IbcFee;
 use neutron_sdk::{
     bindings::{
@@ -60,7 +61,7 @@ pub fn instantiate(
     _env: Env,
     _info: MessageInfo,
     _msg: InstantiateMsg,
-) -> NeutronResult<Response<NeutronMsg>> {
+) -> ExecuteResponse {
     deps.api.debug("WASMDEBUG: instantiate");
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     Ok(Response::default())
@@ -69,21 +70,47 @@ pub fn instantiate(
 #[entry_point]
 pub fn execute(
     deps: DepsMut<NeutronQuery>,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> NeutronResult<Response> {
+) -> ExecuteResponse {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
     //ExecuteMsg::Register{connection_id,interchain_account_id,}=>execute_register_ica(deps,env,connection_id,interchain_account_id),
     //ExecuteMsg::Delegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_delegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
     //ExecuteMsg::Undelegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_undelegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
-    ExecuteMsg::SubmitProposal { title, description } => submit_proposal(deps.storage, title, description),
-    ExecuteMsg::SubmitApplication { proposal_id, configuration } => submit_application(deps.storage, info.sender, proposal_id, configuration),
-    ExecuteMsg::FundProposal {auto_agree, proposal_id } => fund_proposal_native(deps.storage, info, proposal_id, auto_agree),
-    ExecuteMsg::VoteForApplication {  } => todo!(),
-    ExecuteMsg::Verify {  } => todo!(), }
+        ExecuteMsg::SubmitProposal { 
+            title, 
+            description } => submit_proposal(deps.storage, title, description),
+        ExecuteMsg::SubmitApplication { 
+            proposal_id, 
+            configuration } => submit_application(deps.storage, info.sender, proposal_id, configuration),
+        ExecuteMsg::FundProposal {
+            auto_agree, 
+            proposal_id 
+        } => fund_proposal_native(deps.storage, info, proposal_id, auto_agree),
+        ExecuteMsg::ApproveApplication { 
+            proposal_id, 
+            application_sender 
+        } => approve_application(deps.storage, info.sender, proposal_id, application_sender),
+
+        ExecuteMsg::RegisterICA { 
+            proposal_id ,
+            connection_id
+        } => register_ica(
+            deps.storage, 
+            env,
+            connection_id,
+            proposal_id)
+        ,
+
+        ExecuteMsg::VerifyApplication { 
+            proposal_id, 
+            application_sender,
+            stop_at 
+        } => verify_application(deps.storage, info.sender, proposal_id, application_sender, stop_at)
+    }
 }
 
 

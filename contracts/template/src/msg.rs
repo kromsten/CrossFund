@@ -1,6 +1,12 @@
 use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Addr, Response};
+use neutron_sdk::{NeutronResult, bindings::msg::NeutronMsg};
 
 use crate::storage::{Application, Proposal};
+
+
+pub type ExecuteResponse = NeutronResult<Response<NeutronMsg>>;
+
 
 #[cw_serde]
 pub enum QueryMsg {
@@ -61,8 +67,20 @@ pub enum ExecuteMsg {
         proposal_id: u64,
         auto_agree: Option<bool>
     },
-    VoteForApplication {},
-    Verify {}
+    RegisterICA {
+        proposal_id: u64,
+        connection_id: String,
+    },
+    ApproveApplication {
+        proposal_id: u64,
+        application_sender: Addr,
+    },
+
+    VerifyApplication {
+        proposal_id: u64,
+        application_sender: Addr,
+        stop_at: Option<u64>
+    },
 }
 
 
