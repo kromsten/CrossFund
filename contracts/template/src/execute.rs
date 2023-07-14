@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::valid_application, msg::ExecuteResponse, query::{query_application_funds, query_proposal_funds_token, query_proposal_funds}};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::ExecuteResponse, query::{query_application_funds, query_proposal_funds_token, query_proposal_funds}};
 
 
 pub fn submit_proposal(
@@ -22,7 +24,9 @@ pub fn submit_application(
     proposal_id: u64,
     application: Application
 ) -> ExecuteResponse {
-    valid_application(&application)?;
+    if !valid_application(&application) {
+        return Err(NeutronError::InvalidApplication);
+    }
     APPLICATIONS.save(store, (proposal_id, sender), &application)?;
     Ok(Response::default())
 }
@@ -166,8 +170,8 @@ pub fn verify_application(
     
     APPLICATIONS.save(store, (proposal_id, application_sender.clone()), &application)?;
 
-    if (application.auditors.len() == application.verifications.len()) {
-        reward_applicants(store, sender, proposal_id, application_sender, stop_at)?;
+    if application.auditors.len() == application.verifications.len() {
+        reward_applicants(store, proposal_id, application_sender)?;
     }
 
     Ok(Response::default())
@@ -176,12 +180,47 @@ pub fn verify_application(
 
 fn reward_applicants(
     store: &mut dyn Storage,
-    sender: Addr,
     proposal_id: u64,
     application_sender: Addr,
-    stop_at: Option<u64>
 ) -> StdResult<()> {
-    // TODO
+
+    let application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
+    
+    let funds : Vec<(((Addr, String), CustodyFunds))> = CUSTODY_FUNDS
+        .range(store, None, None, Order::Ascending)
+        .filter(|f| {
+            let funds = &f.as_ref().unwrap().1;
+            funds.proposal_id == proposal_id && funds.locked
+        })
+        .map(|f| f.unwrap())
+        .collect();
+
+
+    let mut sums: Vec<(String, Uint128)> = Vec::with_capacity(10);
+
+    for ((sender, token), fund) in funds {
+        CUSTODY_FUNDS.remove(store, (sender, token.as_str()));
+
+        if let Some(index) = sums.iter().position(|(t, _)| t == &token) {
+            // Add the fund amount to the existing sum
+            sums[index].1 += fund.amount;
+        } else {
+            // Add a new sum entry for the token
+            sums.push((token.clone(), fund.amount));
+        }
+    }
+
+    shareholders(&application).iter().for_each(|gf| {
+        sums.iter().for_each(|(token, total)| {
+            let amount: Uint128 = *total * Decimal::percent(gf.percent_share.into());
+            CUSTODY_FUNDS.save(store, (gf.recipient.clone(), token.as_str()), &CustodyFunds {
+                amount,
+                proposal_id,
+                locked: false
+            }).unwrap();
+        });
+    });
+
     Ok(())
 }
 

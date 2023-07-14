@@ -14,7 +14,7 @@ pub struct SudoPayload {
 #[cw_serde]
 pub struct GoodFee {
     pub recipient: Addr,
-    pub bp_share: u16
+    pub percent_share: u8
 }
 
 

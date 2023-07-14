@@ -52,7 +52,10 @@ pub enum NeutronError {
     AlreadyVerified,
 
     #[error("You are not an auditor for this application")]
-    NonAuthorized
+    NonAuthorized,
+
+    #[error("Invalid application. Check that sum of shares is equal to 100")]
+    InvalidApplication
 }
 
 impl From<serde_json_wasm::de::Error> for NeutronError {
