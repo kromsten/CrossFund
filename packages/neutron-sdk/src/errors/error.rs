@@ -44,6 +44,15 @@ pub enum NeutronError {
 
     #[error("Too many transaction filters, max allowed: {max:?}")]
     TooManyTransactionFilters { max: usize },
+
+    #[error("You need to funds the project to vote for submission")]
+    CantVote,
+
+    #[error("You already verified the application")]
+    AlreadyVerified,
+
+    #[error("You are not an auditor for this application")]
+    NonAuthorized
 }
 
 impl From<serde_json_wasm::de::Error> for NeutronError {
