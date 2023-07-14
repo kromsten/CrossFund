@@ -1,6 +1,6 @@
 use cosmwasm_schema::cw_serde;
 
-use crate::storage::{Configuration, Proposal};
+use crate::storage::{Application, Proposal};
 
 #[cw_serde]
 pub enum QueryMsg {
@@ -53,15 +53,15 @@ pub enum ExecuteMsg {
         title: String,
         description: String
     },
-    SubmitConfiguration {
+    SubmitApplication {
         proposal_id: u64,
-        configuration: Configuration
+        configuration: Application
     },
     FundProposal {
         proposal_id: u64,
         auto_agree: Option<bool>
     },
-    Vote {},
+    VoteForApplication {},
     Verify {}
 }
 

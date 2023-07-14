@@ -13,7 +13,7 @@ use cw2::set_contract_version;
 use prost::Message;
 
 
-use crate::execute::{submit_proposal, fund_proposal_native, submit_config};
+use crate::execute::{submit_proposal, fund_proposal_native, submit_application};
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use neutron_sdk::bindings::msg::IbcFee;
 use neutron_sdk::{
@@ -72,7 +72,7 @@ pub fn execute(
     _env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> Result<Response, NeutronError> {
+) -> NeutronResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
     match msg {
@@ -80,11 +80,12 @@ pub fn execute(
     //ExecuteMsg::Delegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_delegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
     //ExecuteMsg::Undelegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_undelegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
     ExecuteMsg::SubmitProposal { title, description } => submit_proposal(deps.storage, title, description),
-    ExecuteMsg::SubmitConfiguration { proposal_id, configuration } => submit_config(deps.storage, info.sender, proposal_id, configuration),
+    ExecuteMsg::SubmitApplication { proposal_id, configuration } => submit_application(deps.storage, info.sender, proposal_id, configuration),
     ExecuteMsg::FundProposal {auto_agree, proposal_id } => fund_proposal_native(deps.storage, info, proposal_id, auto_agree),
-    ExecuteMsg::Vote {  } => todo!(),
+    ExecuteMsg::VoteForApplication {  } => todo!(),
     ExecuteMsg::Verify {  } => todo!(), }
 }
+
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {

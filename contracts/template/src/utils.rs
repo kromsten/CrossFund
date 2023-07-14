@@ -1,10 +1,10 @@
 use cosmwasm_std::StdResult;
 
-use crate::storage::Configuration;
+use crate::storage::Application;
 
 
-pub fn valid_config(
-    configuration: &Configuration
+pub fn valid_application(
+    configuration: &Application
 ) -> StdResult<()> {
     // TODO: implement
     Ok(())

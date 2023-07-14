@@ -35,7 +35,11 @@ impl Default for ProjectFunding {
 }
 
 #[cw_serde]
-pub struct LockedFunds {}
+pub struct LockedFunds {
+    pub amount: Uint128,
+    pub proposal_id: u64,
+    pub locked: bool
+}
 
 
 #[cw_serde]
@@ -46,23 +50,23 @@ pub struct Proposal {
 }
 
 #[cw_serde]
-pub struct Configuration {
+pub struct Application {
     pub completors: Vec<GoodFee>, 
     pub auditors: Vec<GoodFee>
 }
-
 
 
 pub static PROPOSAL_INDEX : Item<u64> = Item::new("proposal_index");
 pub static PROPOSALS: Map<u64, Proposal> = Map::new("proposals");
 
 
-// ROADMAP: Using different key for configuration key
-pub static CONFIGURATIONS: Map<(u64, Addr), Configuration> = Map::new("configurations");
+pub static PROJECT_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("project_funding");
+pub static TOTAL_PROJECT_FUNDING: Map<(u64, &str), Uint128>  = Map::new("total_project_funding");
 
+pub static LOCKED_FUNDS: Map<(Addr, &str), LockedFunds>  = Map::new("locked_funds");
 
-pub static PROJECT_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("locked_funds");
-pub static LOCKED_FUNDS: Map<(Addr, &str), Uint128>  = Map::new("locked_funds");
+pub static APPLICATIONS: Map<(u64, Addr), Application> = Map::new("configurations");
+pub static APPLICATION_FUNDING: Map<(u64, Addr, &str), Uint128> = Map::new("applications");
 
 
 
@@ -78,12 +82,6 @@ pub const ACKNOWLEDGEMENT_RESULTS: Map<(String, u64), AcknowledgementResult> =
     Map::new("acknowledgement_results");
 
 pub const ERRORS_QUEUE: Map<u32, String> = Map::new("errors_queue");
-
-
-
-
-
-
 
 
 #[cw_serde]
