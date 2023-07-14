@@ -2,6 +2,7 @@ use cosmos_sdk_proto::cosmos::base::v1beta1::Coin;
 use cosmos_sdk_proto::cosmos::staking::v1beta1::{
     MsgDelegate, MsgDelegateResponse, MsgUndelegate, MsgUndelegateResponse,
 };
+use cosmwasm_schema::cw_serde;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -10,9 +11,9 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use prost::Message;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
+
+use crate::execute::{submit_proposal, fund_proposal_native, submit_config};
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use neutron_sdk::bindings::msg::IbcFee;
 use neutron_sdk::{
@@ -42,8 +43,8 @@ const FEE_DENOM: &str = "untrn";
 const CONTRACT_NAME: &str = concat!("crates.io:neutron-sdk__", env!("CARGO_PKG_NAME"));
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+
+#[cw_serde]
 struct OpenAckVersion {
     version: String,
     controller_connection_id: String,
@@ -68,16 +69,19 @@ pub fn instantiate(
 #[entry_point]
 pub fn execute(
     deps: DepsMut<NeutronQuery>,
-    env: Env,
-    _: MessageInfo,
+    _env: Env,
+    info: MessageInfo,
     msg: ExecuteMsg,
-) -> NeutronResult<Response<NeutronMsg>> {
+) -> Result<Response, NeutronError> {
     deps.api
         .debug(format!("WASMDEBUG: execute: received msg: {:?}", msg).as_str());
-    match msg {ExecuteMsg::Register{connection_id,interchain_account_id,}=>execute_register_ica(deps,env,connection_id,interchain_account_id),ExecuteMsg::Delegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_delegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),ExecuteMsg::Undelegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_undelegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
-    ExecuteMsg::SubmitProposal { description } => todo!(),
-    ExecuteMsg::SubmitConfiguration {  } => todo!(),
-    ExecuteMsg::Fund {  } => todo!(),
+    match msg {
+    //ExecuteMsg::Register{connection_id,interchain_account_id,}=>execute_register_ica(deps,env,connection_id,interchain_account_id),
+    //ExecuteMsg::Delegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_delegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
+    //ExecuteMsg::Undelegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_undelegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
+    ExecuteMsg::SubmitProposal { title, description } => submit_proposal(deps.storage, title, description),
+    ExecuteMsg::SubmitConfiguration { proposal_id, configuration } => submit_config(deps.storage, info.sender, proposal_id, configuration),
+    ExecuteMsg::FundProposal {auto_agree, proposal_id } => fund_proposal_native(deps.storage, info, proposal_id, auto_agree),
     ExecuteMsg::Vote {  } => todo!(),
     ExecuteMsg::Verify {  } => todo!(), }
 }

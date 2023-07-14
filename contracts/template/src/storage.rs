@@ -18,25 +18,35 @@ pub struct GoodFee {
 
 
 #[cw_serde]
-pub struct Funding {
-    amount: Uint128,
-    native: bool,
-    auto_agree: bool
+pub struct ProjectFunding {
+    pub amount: Uint128,
+    pub auto_agree: bool,
+    pub native: bool,
+}
+
+impl Default for ProjectFunding {
+    fn default() -> Self {
+        ProjectFunding {
+            amount: Uint128::zero(),
+            auto_agree: false,
+            native: true
+        }
+    }
 }
 
 #[cw_serde]
-pub struct Fund {}
+pub struct LockedFunds {}
 
 
 #[cw_serde]
 pub struct Proposal {
+    pub title: String,
     pub description: String,
-    pub funding: Vec<Funding>
+    pub funding: Vec<ProjectFunding>
 }
 
 #[cw_serde]
 pub struct Configuration {
-    pub proposal_id: u64,
     pub completors: Vec<GoodFee>, 
     pub auditors: Vec<GoodFee>
 }
@@ -47,11 +57,12 @@ pub static PROPOSAL_INDEX : Item<u64> = Item::new("proposal_index");
 pub static PROPOSALS: Map<u64, Proposal> = Map::new("proposals");
 
 
+// ROADMAP: Using different key for configuration key
 pub static CONFIGURATIONS: Map<(u64, Addr), Configuration> = Map::new("configurations");
 
 
-pub static FUNDINGS: Map<(u64, &str), Funding>  = Map::new("fundings");
-pub static ABAILABLE_FUNDS: Map<Addr, Fund>  = Map::new("availbale_funds");
+pub static PROJECT_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("locked_funds");
+pub static LOCKED_FUNDS: Map<(Addr, &str), Uint128>  = Map::new("locked_funds");
 
 
 

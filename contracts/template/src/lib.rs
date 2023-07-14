@@ -6,6 +6,7 @@ pub mod contract;
 pub mod msg;
 pub mod execute;
 pub mod utils;
+pub mod query;
 
 
 mod storage;

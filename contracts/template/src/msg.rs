@@ -1,6 +1,6 @@
 use cosmwasm_schema::cw_serde;
 
-use crate::storage::Configuration;
+use crate::storage::{Configuration, Proposal};
 
 #[cw_serde]
 pub enum QueryMsg {
@@ -9,7 +9,7 @@ pub enum QueryMsg {
         interchain_account_id: String,
         connection_id: String,
     },
-    // this query returns ICA from contract store, which saved from acknowledgement
+    // this query returns ICA from contract store, which saved from acknowledgpub(crate) ement
     InterchainAccountAddressFromContract {
         interchain_account_id: String,
     },
@@ -30,32 +30,45 @@ pub struct InstantiateMsg {}
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    Register {
-        connection_id: String,
-        interchain_account_id: String,
-    },
-    Delegate {
-        interchain_account_id: String,
-        validator: String,
-        amount: u128,
-        denom: String,
-        timeout: Option<u64>,
-    },
-    Undelegate {
-        interchain_account_id: String,
-        validator: String,
-        amount: u128,
-        denom: String,
-        timeout: Option<u64>,
-    },
+    // Register {
+    //     connection_id: String,
+    //     interchain_account_id: String,
+    // },
+    // Delegate {
+    //     interchain_account_id: String,
+    //     validator: String,
+    //     amount: u128,
+    //     denom: String,
+    //     timeout: Option<u64>,
+    // },
+    // Undelegate {
+    //     interchain_account_id: String,
+    //     validator: String,
+    //     amount: u128,
+    //     denom: String,
+    //     timeout: Option<u64>,
+    // },
 
     SubmitProposal {
+        title: String,
         description: String
     },
     SubmitConfiguration {
+        proposal_id: u64,
         configuration: Configuration
     },
-    Fund {},
+    FundProposal {
+        proposal_id: u64,
+        auto_agree: Option<bool>
+    },
     Vote {},
     Verify {}
+}
+
+
+
+
+#[cw_serde]
+pub struct AllProposalResponse {
+    pub proposals: Vec<(u64, Proposal)>
 }
