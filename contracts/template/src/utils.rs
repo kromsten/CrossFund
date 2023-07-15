@@ -1,18 +1,25 @@
 use std::{hash::{Hash, Hasher}, collections::hash_map::DefaultHasher};
 
 use neutron_sdk::bindings::msg::IbcFee;
-use crate::storage::{Application, GoodFee};
+use crate::{storage::{Application, GoodFee}, msg::ApplicationSubmission};
 
 const FEE_DENOM: &str = "untrn";
 
 pub fn valid_application(
-    application: &Application
+    application: &ApplicationSubmission
 ) -> bool {
     // TODO: implement
-    let sh =  shareholders(application);
+    let sh =  shareholders_sub(application);
     sh.len() < 100 && sh.iter().map(|f| f.percent_share).sum::<u8>() == 1
 }
 
+
+
+pub fn shareholders_sub(
+    application: &ApplicationSubmission
+) -> Vec<GoodFee> {
+    [&application.applicants[..], &application.auditors[..]].concat()
+}
 
 pub fn shareholders(
     application: &Application

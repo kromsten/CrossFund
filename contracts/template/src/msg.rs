@@ -1,8 +1,9 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Response};
+use cw_utils::Expiration;
 use neutron_sdk::{NeutronResult, bindings::msg::NeutronMsg};
 
-use crate::storage::{Application, ProjectFunding, AcknowledgementResult, CustodyFunds};
+use crate::storage::{Application, ProjectFunding, AcknowledgementResult, CustodyFunds, GoodFee};
 
 pub type ExecuteResponse = NeutronResult<Response<NeutronMsg>>;
 
@@ -80,7 +81,7 @@ pub enum ExecuteMsg {
     },
     SubmitApplication {
         proposal_id: u64,
-        configuration: Application
+        application: ApplicationSubmission
     },
     FundProposal {
         proposal_id: u64,
@@ -106,6 +107,16 @@ pub enum ExecuteMsg {
         stop_at: Option<u64>
     },
 }
+
+
+#[cw_serde]
+pub struct ApplicationSubmission {
+    pub applicants: Vec<GoodFee>, 
+    pub auditors: Vec<GoodFee>,
+    pub deliver_by: Expiration,
+}
+
+
 
 
 #[cw_serde]

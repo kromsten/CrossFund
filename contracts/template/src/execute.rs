@@ -1,7 +1,7 @@
 use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError, CosmosMsg, BankMsg, coins};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::ExecuteResponse, query::{get_application_funds, get_proposal_funds_token, get_proposal_funds, query_address_funds, get_address_funds}};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::{ExecuteResponse, ApplicationSubmission}, query::{get_application_funds, get_proposal_funds_token, get_proposal_funds, query_address_funds, get_address_funds}};
 
 
 pub fn submit_proposal(
@@ -20,12 +20,18 @@ pub fn submit_application(
     store: &mut dyn Storage,
     sender: Addr,
     proposal_id: u64,
-    application: Application
+    application: ApplicationSubmission
 ) -> ExecuteResponse {
     if !valid_application(&application) {
         return Err(NeutronError::InvalidApplication);
     }
-    APPLICATIONS.save(store, (proposal_id, sender), &application)?;
+    APPLICATIONS.save(store, (proposal_id, sender), &Application { 
+        applicants: application.applicants, 
+        auditors: application.auditors, 
+        deliver_by: application.deliver_by, 
+        accepted: false, 
+        verifications: vec![],
+    })?;
     Ok(Response::default())
 }
 
