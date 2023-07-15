@@ -7,7 +7,7 @@ use crate::{storage::{PROPOSALS, PROPOSAL_FUNDING, APPLICATIONS, Proposal, Appli
 
 pub fn query_all_proposals(
     store: &dyn Storage,
-) -> StdResult<AllProposalResponse> {
+) -> NeutronResult<Binary> {
 
     let full_proposal_infos : Vec<FullProposalInfo> = PROPOSALS
             .range(store, None, None, Order::Ascending)
@@ -17,15 +17,16 @@ pub fn query_all_proposals(
             })
             .collect();
 
-    Ok(AllProposalResponse { proposals: full_proposal_infos })
+    Ok(to_binary(&AllProposalResponse { proposals: full_proposal_infos })?)
 }
 
 
 pub fn query_proposal(
     store: &dyn Storage,
     proposal_id: u64
-) -> StdResult<FullProposalInfo> {
-    Ok(get_proposal_full_info(store, proposal_id, &PROPOSALS.load(store, proposal_id)?)?)
+) -> NeutronResult<Binary> {
+    let info = get_proposal_full_info(store, proposal_id, &PROPOSALS.load(store, proposal_id)?)?;
+    Ok(to_binary(&info)?)
 }
 
 
@@ -36,8 +37,8 @@ fn get_proposal_full_info(
     proposal: &Proposal
 ) -> StdResult<FullProposalInfo> {
 
-    let funding = query_proposal_funds(store, id, None)?;
-    let applications = query_proposal_applications(store, id)?;
+    let funding = get_proposal_funds(store, id, None)?;
+    let applications = get_proposal_applications(store, id)?;
 
     Ok(FullProposalInfo {
         id,
@@ -50,7 +51,7 @@ fn get_proposal_full_info(
 
 
 
-pub fn query_proposal_funds(
+pub fn get_proposal_funds(
     store: &dyn Storage,
     proposal_id: u64,
     auto_agree_only: Option<bool>
@@ -71,7 +72,7 @@ pub fn query_proposal_funds(
     )
 }
 
-pub fn query_proposal_funds_token(
+pub fn get_proposal_funds_token(
     store: &dyn Storage,
     proposal_id: u64,
     token: &str
@@ -80,7 +81,7 @@ pub fn query_proposal_funds_token(
 }
 
 
-fn query_proposal_applications(
+fn get_proposal_applications(
     store: &dyn Storage,
     proposal_id: u64
 ) -> StdResult<Vec<(Addr, Application)>> {
@@ -93,7 +94,7 @@ fn query_proposal_applications(
 }
 
 
-pub fn query_application_funds(
+pub fn get_application_funds(
     store: &dyn Storage,
     proposal_id: u64,
     application_sender: Addr,
@@ -107,7 +108,7 @@ pub fn query_application_funds(
 }
 
 
-pub fn query_application_funds_token(
+pub fn get_application_funds_token(
     store: &dyn Storage,
     proposal_id: u64,
     application_sender: Addr,
@@ -123,14 +124,30 @@ pub fn query_address_funds(
     store: &dyn Storage,
     address: &Addr,
     skip_locked: bool
-) -> StdResult<Vec<(String, CustodyFunds)>> {
+) -> NeutronResult<Binary> {
 
+    let funds = get_address_funds(
+        store,
+        address,
+        skip_locked
+    )?;
+
+    Ok(to_binary(&funds)?)
+
+}
+
+
+pub fn get_address_funds(
+    store: &dyn Storage,
+    address: &Addr,
+    skip_locked: bool
+) -> StdResult<Vec<(String, CustodyFunds)>> {
     Ok(CUSTODY_FUNDS
         .prefix(address.clone())
         .range(store, None, None, Order::Ascending)
         .map(|f| f.unwrap())
         .filter(|(_, custody_funds)| !(skip_locked && custody_funds.locked))
-        .collect::<Vec<_>>()
+        .collect::<Vec<(String, CustodyFunds)>>()
     )
 }
 

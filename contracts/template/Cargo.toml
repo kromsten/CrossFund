@@ -1,7 +1,7 @@
 [package]
-name = "neutron_interchain_txs"
+name = "goods"
 version = "0.1.0"
-authors = ["ratik <sergey.r@p2p.org>"]
+authors = ["kromsten <kromsten@pm.me>"]
 edition = "2021"
 
 exclude = [

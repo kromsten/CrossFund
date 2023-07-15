@@ -1,5 +1,3 @@
-use std::env;
-
 use cosmos_sdk_proto::cosmos::{staking::v1beta1::{MsgUndelegateResponse, MsgDelegateResponse}, tx::v1beta1::{TxRaw, TxBody}, bank::v1beta1::MsgSend};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{DepsMut, Env, StdResult, Response, StdError, Binary, Reply, Storage, MessageInfo, Uint128, Addr};
@@ -18,7 +16,7 @@ use crate::{storage::{
     AcknowledgementResult, 
     save_sudo_payload, 
     read_reply_payload, Transfer, PROCESSED_TXS, PROPOSAL_FUNDING, CUSTODY_FUNDS, CustodyFunds, ADDRESS_TO_PROPOSAL
-}, utils::hash_data, msg::ExecuteResponse};
+}, utils::hash_data};
 
 
 #[cw_serde]
@@ -29,7 +27,6 @@ struct OpenAckVersion {
     address: String,
     encoding: String,
     tx_type: String,
-
 }
 
 // handler
@@ -292,19 +289,19 @@ pub fn sudo_tx_query_result(
     deps: DepsMut<NeutronQuery>,
     env: Env,
     query_id: u64,
-    height: Height,
+    _height: Height,
     data: Binary,
 ) -> NeutronResult<Response> {
     // Decode the transaction data
     let tx: TxRaw = TxRaw::decode(data.as_slice())?;
     let body: TxBody = TxBody::decode(tx.body_bytes.as_slice())?;
 
-    
     let digest = hash_data(&tx.body_bytes);
 
     if PROCESSED_TXS.has(deps.storage, digest) {
         return Ok(Response::default());
     }
+
 
     let auto_agree = body.memo == "auto_agree";
 
@@ -347,7 +344,6 @@ pub fn sudo_tx_query_result(
             }
 
             check_deposits_size(&deposits)?;
-
     
             for deposit in &deposits {
 
@@ -367,7 +363,6 @@ pub fn sudo_tx_query_result(
                     load.unwrap(),
                     auto_agree
                 )?;
-
             }
 
             Ok(Response::default())

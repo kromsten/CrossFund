@@ -2,14 +2,14 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult, SubMsg,
+    StdError, StdResult, SubMsg
 };
 
 use cw2::set_contract_version;
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, ExecuteResponse};
 use crate::execute::{submit_proposal, fund_proposal_native, submit_application, approve_application, register_ica, verify_application, accept_application};
-use crate::query::{query_interchain_address, query_interchain_address_contract, query_acknowledgement_result, query_errors_queue};
+use crate::query::{query_interchain_address, query_interchain_address_contract, query_acknowledgement_result, query_errors_queue, query_all_proposals, query_proposal, query_address_funds};
 use crate::sudo::{sudo_error, sudo_open_ack, sudo_response, sudo_timeout, prepare_sudo_payload};
 
 use neutron_sdk::{
@@ -59,7 +59,7 @@ pub fn execute(
     //ExecuteMsg::Delegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_delegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
     //ExecuteMsg::Undelegate{validator,interchain_account_id,amount,denom,timeout,}=>execute_undelegate(deps,env,interchain_account_id,validator,amount,denom,timeout,),
         ExecuteMsg::SubmitProposal { 
-            title, 
+            title,
             description } => submit_proposal(deps.storage, title, description),
         ExecuteMsg::SubmitApplication { 
             proposal_id, 
@@ -100,6 +100,15 @@ pub fn execute(
 pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
 
     match msg {
+
+        QueryMsg::AllProposals { } => query_all_proposals(deps.storage),
+
+        QueryMsg::Proposal { proposal_id } => query_proposal(deps.storage, proposal_id),
+
+        QueryMsg::AddressFunds { address, skip_locked } => query_address_funds(
+            deps.storage, &address, skip_locked.unwrap_or(false)),
+
+
         QueryMsg::InterchainAccountAddress {
             connection_id,
             proposal_id,

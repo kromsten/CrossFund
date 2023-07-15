@@ -1,6 +1,4 @@
-use cosmos_sdk_proto::tendermint::types::Data;
 use cosmwasm_std::{from_binary, to_vec, Binary, Order, StdResult, Storage, Addr, Uint128};
-use cw_storage::{Bucket, bucket};
 use cw_storage_plus::{Item, Map};
 use cosmwasm_schema::cw_serde;
 use cw_utils::Expiration;
@@ -61,6 +59,7 @@ pub struct Application {
     pub applicants: Vec<GoodFee>, 
     pub auditors: Vec<GoodFee>,
     pub deliver_by: Expiration,
+
     pub accepted: bool,
     pub verifications: Vec<Addr>
 }

@@ -1,7 +1,7 @@
 use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError, CosmosMsg, BankMsg, coins};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::ExecuteResponse, query::{query_application_funds, query_proposal_funds_token, query_proposal_funds, query_address_funds}};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::ExecuteResponse, query::{get_application_funds, get_proposal_funds_token, get_proposal_funds, query_address_funds, get_address_funds}};
 
 
 pub fn submit_proposal(
@@ -184,7 +184,7 @@ pub fn withdraw_funds(
     sender: Addr,
 ) -> ExecuteResponse {
 
-    let funds = query_address_funds(store, &sender, true)?;
+    let funds = get_address_funds(store, &sender, true)?;
 
     if funds.is_empty() {
         return Err(NeutronError::NoFunds{});
@@ -216,7 +216,6 @@ fn reward_applicants(
         })
         .map(|f| f.unwrap())
         .collect();
-
 
     let mut sums: Vec<(String, Uint128)> = Vec::with_capacity(10);
 
@@ -253,8 +252,8 @@ fn check_for_auto_agree(
     proposal_id: u64,
     application_sender: Addr,
 ) -> StdResult<()> {
-    for (token, amount) in  query_application_funds(store, proposal_id, application_sender)? {
-        let total = query_proposal_funds_token(store, proposal_id.clone(), token.as_str())?;
+    for (token, amount) in  get_application_funds(store, proposal_id, application_sender)? {
+        let total = get_proposal_funds_token(store, proposal_id.clone(), token.as_str())?;
         let ratio = Decimal::from_ratio(amount, total);
         if ratio > Decimal::percent(50) {
             auto_agree(store, proposal_id)?;
@@ -269,7 +268,7 @@ fn auto_agree(
     proposal_id: u64,
 ) -> StdResult<()> {
 
-    let funds = query_proposal_funds(store, proposal_id, Some(true))?;
+    let funds = get_proposal_funds(store, proposal_id, Some(true))?;
 
     for (token, funding) in funds {
         

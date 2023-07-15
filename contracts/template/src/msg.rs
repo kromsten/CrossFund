@@ -1,30 +1,49 @@
-use cosmwasm_schema::cw_serde;
+use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Response};
 use neutron_sdk::{NeutronResult, bindings::msg::NeutronMsg};
 
-use crate::storage::{Application, ProjectFunding};
-
+use crate::storage::{Application, ProjectFunding, AcknowledgementResult, CustodyFunds};
 
 pub type ExecuteResponse = NeutronResult<Response<NeutronMsg>>;
 
 
 #[cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
-    /// this query goes to neutron and get stored ICA with a specific query
+
+    #[returns(AllProposalResponse)]
+    AllProposals {},
+
+    #[returns(FullProposalInfo)]
+    Proposal {
+        proposal_id: u64,
+    },
+
+    #[returns(Vec<(String, CustodyFunds)>)]
+    AddressFunds {
+        address: Addr,
+        skip_locked: Option<bool>,
+    },
+
+
+    #[returns((String, String))]
     InterchainAccountAddress {
         connection_id: String,
         proposal_id: u64,
     },
-    // this query returns ICA from contract store, which saved from acknowledgpub(crate) ement
+    
+    #[returns((String, String))]
     InterchainAccountAddressFromContract {
         proposal_id: u64,
     },
-    // this query returns acknowledgement result after interchain transaction
+    
+    #[returns(Option<AcknowledgementResult>)]
     AcknowledgementResult {
         sequence_id: u64,
         proposal_id: u64,
     },
-    // this query returns non-critical errors list
+    
+    #[returns(Vec<(Vec<u8>, String)>)]
     ErrorsQueue {},
 }
 
@@ -103,3 +122,4 @@ pub struct FullProposalInfo {
 pub struct AllProposalResponse {
     pub proposals: Vec<FullProposalInfo>
 }
+
