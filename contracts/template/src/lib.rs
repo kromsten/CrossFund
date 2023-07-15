@@ -8,7 +8,7 @@ pub mod execute;
 pub mod utils;
 pub mod query;
 pub mod sudo;
-
+pub mod interchain_queries;
 mod storage;
 
 #[allow(clippy::unwrap_used)]

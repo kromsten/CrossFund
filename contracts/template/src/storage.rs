@@ -1,7 +1,10 @@
+use cosmos_sdk_proto::tendermint::types::Data;
 use cosmwasm_std::{from_binary, to_vec, Binary, Order, StdResult, Storage, Addr, Uint128};
+use cw_storage::{Bucket, bucket};
 use cw_storage_plus::{Item, Map};
 use cosmwasm_schema::cw_serde;
 use cw_utils::Expiration;
+
 
 
 #[cw_serde]
@@ -41,7 +44,8 @@ impl Default for ProjectFunding {
 pub struct CustodyFunds {
     pub amount: Uint128,
     pub proposal_id: u64,
-    pub locked: bool
+    pub locked: bool,
+    pub remote: Option<String>
 }
 
 
@@ -57,9 +61,16 @@ pub struct Application {
     pub applicants: Vec<GoodFee>, 
     pub auditors: Vec<GoodFee>,
     pub deliver_by: Expiration,
-
     pub accepted: bool,
     pub verifications: Vec<Addr>
+}
+
+#[cw_serde]
+pub struct Transfer {
+    pub recipient: String,
+    pub sender: String,
+    pub denom: String,
+    pub amount: String,
 }
 
 
@@ -72,13 +83,23 @@ pub static APPLICATION_FUNDING: Map<(u64, Addr, &str), Uint128> = Map::new("appl
 
 pub static CUSTODY_FUNDS: Map<(Addr, &str), CustodyFunds>  = Map::new("custody_funds");
 
+pub static LAST_CHECKED_BLOCKS: Map<(u64, &str), u64> = Map::new("last_checked_blocks");
+
+
+pub static INTERCHAIN_ACCOUNTS: Map<String, Option<(String, String)>> =
+    Map::new("interchain_accounts");
+
+pub static ADDRESS_TO_PROPOSAL: Map<String, u64> = Map::new("address_to_proposal");
+
+pub static PROCESSED_TXS: Map<u64, bool> = Map::new("processed_tx");
+
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 
 pub const REPLY_ID_STORAGE: Item<Vec<u8>> = Item::new("reply_queue_id");
 pub const SUDO_PAYLOAD: Map<(String, u64), Vec<u8>> = Map::new("sudo_payload");
-pub const INTERCHAIN_ACCOUNTS: Map<String, Option<(String, String)>> =
-    Map::new("interchain_accounts");
+
+//pub const proce
 
 // interchain transaction responses - ack/err/timeout state to query later
 pub const ACKNOWLEDGEMENT_RESULTS: Map<(String, u64), AcknowledgementResult> =

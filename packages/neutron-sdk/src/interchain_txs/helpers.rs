@@ -34,3 +34,13 @@ pub fn get_port_id<R: AsRef<str>>(contract_address: R, interchain_account_id: R)
         + ICA_OWNER_DELIMITER
         + interchain_account_id.as_ref()
 }
+
+pub fn get_proposal_id(port_id: &str) -> u64 {
+    // split by ICA_OWNER_DELIMITER and return the last element
+    port_id
+        .split(ICA_OWNER_DELIMITER)
+        .last()
+        .unwrap()
+        .parse::<u64>()
+        .unwrap_or(0)
+}

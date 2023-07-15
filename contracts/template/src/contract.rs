@@ -100,7 +100,6 @@ pub fn execute(
 pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult<Binary> {
 
     match msg {
-
         QueryMsg::InterchainAccountAddress {
             connection_id,
             proposal_id,
@@ -287,19 +286,13 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
     }
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
-    deps.api.debug("WASMDEBUG: migrate");
-    Ok(Response::default())
-}
-
-
 
 
 #[entry_point]
 pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     deps.api
         .debug(format!("WASMDEBUG: reply msg: {:?}", msg).as_str());
+
     match msg.id {
         SUDO_PAYLOAD_REPLY_ID => prepare_sudo_payload(deps, env, msg),
         _ => Err(StdError::generic_err(format!(
@@ -309,3 +302,9 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> StdResult<Response> {
     }
 }
 
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+    deps.api.debug("WASMDEBUG: migrate");
+    Ok(Response::default())
+}

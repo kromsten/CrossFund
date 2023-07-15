@@ -53,7 +53,8 @@ pub fn fund_proposal_native(
         CUSTODY_FUNDS.save(store, (sender.clone(), coin.denom.as_str()), &CustodyFunds {
             amount: coin.amount,
             proposal_id,
-            locked: false
+            locked: false,
+            remote: None
         })?;
     }
 
@@ -89,10 +90,12 @@ pub fn approve_application(
             .unwrap_or_default();
 
         APPLICATION_FUNDING.save(store, (proposal_id, application_sender.clone(), key.as_str()), &(existing + value.amount))?;
+        
         CUSTODY_FUNDS.save(store, (sender.clone(), key.as_str()), &CustodyFunds {
             amount: value.amount,
             proposal_id,
-            locked: true
+            locked: true,
+            remote: None
         })?;
     }
 
@@ -235,6 +238,7 @@ fn reward_applicants(
             CUSTODY_FUNDS.save(store, (gf.recipient.clone(), token.as_str()), &CustodyFunds {
                 amount,
                 proposal_id,
+                remote: None,
                 locked: false
             }).unwrap();
         });

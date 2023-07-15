@@ -1,3 +1,5 @@
+use std::{hash::{Hash, Hasher}, collections::hash_map::DefaultHasher};
+
 use neutron_sdk::bindings::msg::IbcFee;
 use crate::storage::{Application, GoodFee};
 
@@ -33,4 +35,14 @@ pub fn min_ntrn_ibc_fee(fee: IbcFee) -> IbcFee {
             .filter(|a| a.denom == FEE_DENOM)
             .collect(),
     }
+}
+
+
+pub fn hash_data<T>(data: &T) -> u64
+where
+    T: Hash,
+{
+    let mut hasher = DefaultHasher::new();
+    data.hash(&mut hasher);
+    hasher.finish()
 }
