@@ -48,7 +48,7 @@ pub fn fund_proposal_native(
         funding.auto_agree = auto_agree.unwrap_or(false);
         funding.sender = sender.clone();
 
-        PROPOSAL_FUNDING.save(store, (proposal_id, sender.as_ref()), &funding)?;
+        PROPOSAL_FUNDING.save(store, (proposal_id, coin.denom.as_str()), &funding)?;
 
         CUSTODY_FUNDS.save(store, (sender.clone(), coin.denom.as_str()), &CustodyFunds {
             amount: coin.amount,

@@ -105,8 +105,12 @@ pub fn query(deps: Deps<NeutronQuery>, env: Env, msg: QueryMsg) -> NeutronResult
 
         QueryMsg::Proposal { proposal_id } => query_proposal(deps.storage, proposal_id),
 
-        QueryMsg::AddressFunds { address, skip_locked } => query_address_funds(
-            deps.storage, &address, skip_locked.unwrap_or(false)),
+        QueryMsg::AddressFunds { address, skip_locked } => 
+            query_address_funds(
+                deps.storage, 
+                &address, 
+                skip_locked.unwrap_or(false)
+            ),
 
 
         QueryMsg::InterchainAccountAddress {
