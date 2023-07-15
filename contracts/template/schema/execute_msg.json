@@ -140,6 +140,33 @@
     {
       "type": "object",
       "required": [
+        "accept_application"
+      ],
+      "properties": {
+        "accept_application": {
+          "type": "object",
+          "required": [
+            "application_sender",
+            "proposal_id"
+          ],
+          "properties": {
+            "application_sender": {
+              "$ref": "#/definitions/Addr"
+            },
+            "proposal_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
         "verify_application"
       ],
       "properties": {
@@ -265,13 +292,13 @@
     "GoodFee": {
       "type": "object",
       "required": [
-        "bp_share",
+        "percent_share",
         "recipient"
       ],
       "properties": {
-        "bp_share": {
+        "percent_share": {
           "type": "integer",
-          "format": "uint16",
+          "format": "uint8",
           "minimum": 0.0
         },
         "recipient": {

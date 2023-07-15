@@ -13,14 +13,16 @@
           "type": "object",
           "required": [
             "connection_id",
-            "interchain_account_id"
+            "proposal_id"
           ],
           "properties": {
             "connection_id": {
               "type": "string"
             },
-            "interchain_account_id": {
-              "type": "string"
+            "proposal_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
             }
           },
           "additionalProperties": false
@@ -37,11 +39,13 @@
         "interchain_account_address_from_contract": {
           "type": "object",
           "required": [
-            "interchain_account_id"
+            "proposal_id"
           ],
           "properties": {
-            "interchain_account_id": {
-              "type": "string"
+            "proposal_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
             }
           },
           "additionalProperties": false
@@ -58,12 +62,14 @@
         "acknowledgement_result": {
           "type": "object",
           "required": [
-            "interchain_account_id",
+            "proposal_id",
             "sequence_id"
           ],
           "properties": {
-            "interchain_account_id": {
-              "type": "string"
+            "proposal_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
             },
             "sequence_id": {
               "type": "integer",
