@@ -12,17 +12,17 @@ pub type ExecuteResponse = NeutronResult<Response<NeutronMsg>>;
 pub enum QueryMsg {
     /// this query goes to neutron and get stored ICA with a specific query
     InterchainAccountAddress {
-        interchain_account_id: String,
         connection_id: String,
+        proposal_id: u64,
     },
     // this query returns ICA from contract store, which saved from acknowledgpub(crate) ement
     InterchainAccountAddressFromContract {
-        interchain_account_id: String,
+        proposal_id: u64,
     },
     // this query returns acknowledgement result after interchain transaction
     AcknowledgementResult {
-        interchain_account_id: String,
         sequence_id: u64,
+        proposal_id: u64,
     },
     // this query returns non-critical errors list
     ErrorsQueue {},

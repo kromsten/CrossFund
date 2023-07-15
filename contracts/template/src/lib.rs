@@ -7,7 +7,7 @@ pub mod msg;
 pub mod execute;
 pub mod utils;
 pub mod query;
-
+pub mod sudo;
 
 mod storage;
 

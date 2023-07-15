@@ -1,8 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::{
-    contract::query_errors_queue,
-    storage::{add_error_to_queue, read_errors_from_queue, ERRORS_QUEUE},
+    storage::{add_error_to_queue, read_errors_from_queue, ERRORS_QUEUE}, query::query_errors_queue,
 };
 
 use cosmwasm_std::{

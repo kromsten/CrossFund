@@ -1,6 +1,7 @@
-use cosmwasm_std::{Storage, Order, StdResult, Uint128, Addr};
+use cosmwasm_std::{Storage, Order, StdResult, Uint128, Addr, Deps, Env, Binary, to_binary, CustomQuery, StdError};
+use neutron_sdk::{bindings::query::{NeutronQuery, QueryInterchainAccountAddressResponse}, NeutronResult, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_FUNDING, APPLICATIONS, Proposal, Application, APPLICATION_FUNDING, ProjectFunding, CustodyFunds, CUSTODY_FUNDS}, msg::{AllProposalResponse, FullProposalInfo}};
+use crate::{storage::{PROPOSALS, PROPOSAL_FUNDING, APPLICATIONS, Proposal, Application, APPLICATION_FUNDING, ProjectFunding, CustodyFunds, CUSTODY_FUNDS, INTERCHAIN_ACCOUNTS, ACKNOWLEDGEMENT_RESULTS, read_errors_from_queue}, msg::{AllProposalResponse, FullProposalInfo}};
 
 
 
@@ -131,13 +132,62 @@ pub fn query_address_funds(
         .filter(|(_, custody_funds)| !(skip_locked && custody_funds.locked))
         .collect::<Vec<_>>()
     )
-
 }
-// locked not locked
-// 1  0
 
-// skip not skip
-// 1  0
 
-// xor
-// 
+pub fn query_interchain_address(
+    deps: Deps<NeutronQuery>,
+    env: Env,
+    connection_id: String,
+    proposal_id: u64,
+) -> NeutronResult<Binary> {
+    let query = NeutronQuery::InterchainAccountAddress {
+        owner_address: env.contract.address.to_string(),
+        interchain_account_id: proposal_id.to_string(),
+        connection_id,
+    };
+    let res: QueryInterchainAccountAddressResponse = deps.querier.query(&query.into())?;
+    Ok(to_binary(&res)?)
+}
+
+
+pub fn query_interchain_address_contract(
+    deps: Deps<NeutronQuery>,
+    env: Env,
+    proposal_id: u64
+) -> NeutronResult<Binary> {
+    Ok(to_binary(&get_ica(deps, &env, &proposal_id)?)?)
+}
+
+
+pub fn query_acknowledgement_result(
+    deps: Deps<NeutronQuery>,
+    env: Env,
+    sequence_id: u64,
+    proposal_id: u64,
+) -> NeutronResult<Binary> {
+    let port_id: String = get_port_id(env.contract.address.as_str(), &proposal_id.to_string());
+    let res = ACKNOWLEDGEMENT_RESULTS.may_load(deps.storage, (port_id, sequence_id))?;
+    Ok(to_binary(&res)?)
+}
+
+
+pub fn query_errors_queue(deps: Deps<NeutronQuery>) -> NeutronResult<Binary> {
+    let res = read_errors_from_queue(deps.storage)?;
+    Ok(to_binary(&res)?)
+}
+
+fn get_ica(
+    deps: Deps<impl CustomQuery>,
+    env: &Env,
+    proposal_id: &u64
+) -> Result<(String, String), StdError> {
+    let key = get_port_id(
+        env.contract.address.as_str(), 
+        proposal_id.to_string().as_str()
+    );
+
+    INTERCHAIN_ACCOUNTS
+        .load(deps.storage, key)?
+        .ok_or_else(|| StdError::generic_err("Interchain account is not created yet"))
+}
