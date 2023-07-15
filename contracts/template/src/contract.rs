@@ -64,7 +64,7 @@ pub fn execute(
         ExecuteMsg::SubmitApplication { 
             proposal_id, 
             application } => 
-                submit_application(deps.storage, info.sender, proposal_id, application),
+                submit_application(deps.storage, env, info.sender, proposal_id, application),
         ExecuteMsg::FundProposal {
             auto_agree, 
             proposal_id 

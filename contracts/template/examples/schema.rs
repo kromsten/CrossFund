@@ -11,6 +11,9 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
+    export_schema(&schema_for!(goods::storage::Application), &out_dir);
+    export_schema(&schema_for!(goods::storage::CustodyFunds), &out_dir);
+    export_schema(&schema_for!(goods::storage::GoodFee), &out_dir);
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     export_schema(&schema_for!(MigrateMsg), &out_dir);
     export_schema(&schema_for!(SudoMsg), &out_dir);

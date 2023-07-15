@@ -18,11 +18,12 @@ pub fn submit_proposal(
 
 pub fn submit_application(
     store: &mut dyn Storage,
+    env: Env,
     sender: Addr,
     proposal_id: u64,
     application: ApplicationSubmission
 ) -> ExecuteResponse {
-    if !valid_application(&application) {
+    if !valid_application(&application, &env.block) {
         return Err(NeutronError::InvalidApplication);
     }
     APPLICATIONS.save(store, (proposal_id, sender), &Application { 
