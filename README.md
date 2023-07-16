@@ -23,5 +23,3 @@ Name your built wasm file `crossfund.wasm`and put it inside `contracts` director
 
 After that:
 `yarn test`
-
-```
