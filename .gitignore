@@ -16,3 +16,4 @@ junit.xml
 
 contracts/*.wasm
 target
+.vscode
