@@ -13,7 +13,7 @@ pub fn valid_application(
     let sh =  shareholders_sub(application);
     sh.len() < 100 && 
     application.deliver_by != Expiration::Never {} &&
-    application.deliver_by.is_expired(&block_info) &&
+    !application.deliver_by.is_expired(&block_info) &&
     application.applicants.len() > 0 &&
     application.auditors.len() > 0 &&
     sh.iter().map(|f| f.percent_share).sum::<u8>() == 1

@@ -54,7 +54,7 @@ pub enum NeutronError {
     #[error("You are not an auditor for this application")]
     NonAuthorized,
 
-    #[error("Invalid application. Check that sum of shares is equal to 100")]
+    #[error("Invalid application. Missing / invalid fields or sum of shares not equal tp 100")]
     InvalidApplication,
 
     #[error("No funds to withdraw or they are locked")]
