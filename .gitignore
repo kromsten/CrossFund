@@ -1,17 +1,17 @@
+node_modules/
+yarn-error.log
+keystore.db
+contracts/artifacts/
+.jest
+
+# IDEs
+*.iml
+.idea
 .DS_Store
-node_modules
-/build
-/.svelte-kit
-/package
-.env
-.env.*
-!.env.example
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+*_action.json
+.vscode
 
+write-file-atomic*
+junit.xml
 
-# Added by cargo
-
-/target
-artifacts
 contracts/*.wasm

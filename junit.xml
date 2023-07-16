@@ -1,109 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="8" failures="8" errors="0" time="1.028">
-  <testsuite name="Neutron Hackaton Test" errors="0" failures="8" skipped="0" timestamp="2023-07-16T09:28:43" time="0.892" tests="8">
-    <testcase classname="Neutron Hackaton Test deploying contract store contract" name="Neutron Hackaton Test deploying contract store contract" time="0">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+<testsuites name="jest tests" tests="10" failures="0" errors="0" time="39.735">
+  <testsuite name="Neutron Hackaton Test" errors="0" failures="0" skipped="0" timestamp="2023-07-16T10:10:41" time="20.342" tests="2">
+    <testcase classname="Neutron Hackaton Test deploying contract store contract" name="Neutron Hackaton Test deploying contract store contract" time="1.257">
     </testcase>
-    <testcase classname="Neutron Hackaton Test deploying contract instantiate contract" name="Neutron Hackaton Test deploying contract instantiate contract" time="0.001">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+    <testcase classname="Neutron Hackaton Test deploying contract instantiate contract" name="Neutron Hackaton Test deploying contract instantiate contract" time="1.851">
     </testcase>
-    <testcase classname="Neutron Hackaton Test registering an interchain account can register account" name="Neutron Hackaton Test registering an interchain account can register account" time="0">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+  </testsuite>
+  <testsuite name="Neutron Hackaton Test" errors="0" failures="0" skipped="0" timestamp="2023-07-16T10:10:41" time="39.567" tests="8">
+    <testcase classname="Neutron Hackaton Test deploying contract store contract" name="Neutron Hackaton Test deploying contract store contract" time="1.281">
     </testcase>
-    <testcase classname="Neutron Hackaton Test registering an interchain account if ICA accounts created" name="Neutron Hackaton Test registering an interchain account if ICA accounts created" time="0">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+    <testcase classname="Neutron Hackaton Test deploying contract instantiate contract" name="Neutron Hackaton Test deploying contract instantiate contract" time="1.823">
     </testcase>
-    <testcase classname="Neutron Hackaton Test registering an interchain account if can get the ICA address" name="Neutron Hackaton Test registering an interchain account if can get the ICA address" time="0">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+    <testcase classname="Neutron Hackaton Test registering an interchain account can register account" name="Neutron Hackaton Test registering an interchain account can register account" time="3.046">
     </testcase>
-    <testcase classname="Neutron Hackaton Test funding a project from another chain if can send funds to the ICA" name="Neutron Hackaton Test funding a project from another chain if can send funds to the ICA" time="0">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+    <testcase classname="Neutron Hackaton Test registering an interchain account if ICA accounts created" name="Neutron Hackaton Test registering an interchain account if ICA accounts created" time="0.007">
     </testcase>
-    <testcase classname="Neutron Hackaton Test funding a project from another chain that contract havent seen the transfer yet" name="Neutron Hackaton Test funding a project from another chain that contract havent seen the transfer yet" time="0">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+    <testcase classname="Neutron Hackaton Test registering an interchain account if can get the ICA address" name="Neutron Hackaton Test registering an interchain account if can get the ICA address" time="5.042">
     </testcase>
-    <testcase classname="Neutron Hackaton Test funding a project from another chain that contract sees the transfer after a while" name="Neutron Hackaton Test funding a project from another chain that contract sees the transfer after a while" time="0">
-      <failure>Error: crypto.getRandomValues must be defined
-    at Object.randomBytes (/Users/mk/Work/goods/node_modules/@noble/hashes/src/utils.ts:215:9)
-    at rng (/Users/mk/Work/goods/node_modules/bip39/src/index.js:135:49)
-    at generateMnemonic (/Users/mk/Work/goods/node_modules/bip39/src/index.js:136:30)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:228:38
-    at Generator.next (&lt;anonymous&gt;)
-    at asyncGeneratorStep (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at _next (/Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25
-    at new Promise (&lt;anonymous&gt;)
-    at /Users/mk/Work/goods/src/testcases/common_localcosmosnet.ts:15:25</failure>
+    <testcase classname="Neutron Hackaton Test funding a project from another chain if can send funds to the ICA" name="Neutron Hackaton Test funding a project from another chain if can send funds to the ICA" time="0.955">
+    </testcase>
+    <testcase classname="Neutron Hackaton Test funding a project from another chain that contract havent seen the transfer yet" name="Neutron Hackaton Test funding a project from another chain that contract havent seen the transfer yet" time="0.01">
+    </testcase>
+    <testcase classname="Neutron Hackaton Test funding a project from another chain that contract sees the transfer after a while (FAILS)" name="Neutron Hackaton Test funding a project from another chain that contract sees the transfer after a while (FAILS)" time="9.161">
     </testcase>
   </testsuite>
 </testsuites>
