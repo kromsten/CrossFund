@@ -223,6 +223,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossfund"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.2",
+ "bech32",
+ "cosmos-sdk-proto 0.19.0",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage",
+ "cw-storage-plus",
+ "cw-utils",
+ "cw2",
+ "neutron-sdk",
+ "prost",
+ "prost-types",
+ "protobuf",
+ "schemars 0.8.12",
+ "serde",
+ "serde-json-wasm 0.5.1",
+ "thiserror",
+]
+
+[[package]]
 name = "crunchy"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -465,29 +488,6 @@ dependencies = [
  "cfg-if",
  "libc",
  "wasi",
-]
-
-[[package]]
-name = "goods"
-version = "0.1.0"
-dependencies = [
- "base64 0.21.2",
- "bech32",
- "cosmos-sdk-proto 0.19.0",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage",
- "cw-storage-plus",
- "cw-utils",
- "cw2",
- "neutron-sdk",
- "prost",
- "prost-types",
- "protobuf",
- "schemars 0.8.12",
- "serde",
- "serde-json-wasm 0.5.1",
- "thiserror",
 ]
 
 [[package]]
