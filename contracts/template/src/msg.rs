@@ -56,25 +56,6 @@ pub struct InstantiateMsg {}
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    // Register {
-    //     connection_id: String,
-    //     interchain_account_id: String,
-    // },
-    // Delegate {
-    //     interchain_account_id: String,
-    //     validator: String,
-    //     amount: u128,
-    //     denom: String,
-    //     timeout: Option<u64>,
-    // },
-    // Undelegate {
-    //     interchain_account_id: String,
-    //     validator: String,
-    //     amount: u128,
-    //     denom: String,
-    //     timeout: Option<u64>,
-    // },
-
     SubmitProposal {
         title: String,
         description: String

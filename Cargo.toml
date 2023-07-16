@@ -5,7 +5,6 @@ members = [
 resolver = "2"
 
 [workspace.package]
-name = "goods_interchain_funding"
 version = "0.1.0"
 authors = ["kromsten <kromsten@pm.me>"]
 edition = "2021"

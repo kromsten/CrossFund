@@ -16,9 +16,8 @@ pub fn valid_application(
     !application.deliver_by.is_expired(&block_info) &&
     application.applicants.len() > 0 &&
     application.auditors.len() > 0 &&
-    sh.iter().map(|f| f.percent_share).sum::<u8>() == 1
+    sh.iter().map(|f| f.percent_share).sum::<u8>() == 100
 }
-
 
 
 pub fn shareholders_sub(

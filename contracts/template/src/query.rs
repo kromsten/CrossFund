@@ -37,6 +37,10 @@ fn get_proposal_full_info(
     proposal: &Proposal
 ) -> StdResult<FullProposalInfo> {
 
+    if PROPOSALS.has(store, id) == false {
+        return Err(StdError::generic_err("Proposal does not exist"));
+    }
+
     let funding = get_proposal_funds(store, id, None)?;
     let applications = get_proposal_applications(store, id)?;
 
@@ -125,15 +129,12 @@ pub fn query_address_funds(
     address: &Addr,
     skip_locked: bool
 ) -> NeutronResult<Binary> {
-
     let funds = get_address_funds(
         store,
         address,
         skip_locked
     )?;
-
     Ok(to_binary(&funds)?)
-
 }
 
 
@@ -143,7 +144,7 @@ pub fn get_address_funds(
     skip_locked: bool
 ) -> StdResult<Vec<(String, CustodyFunds)>> {
     Ok(CUSTODY_FUNDS
-        .prefix(address.clone())
+        .prefix(address)
         .range(store, None, None, Order::Ascending)
         .map(|f| f.unwrap())
         .filter(|(_, custody_funds)| !(skip_locked && custody_funds.locked))

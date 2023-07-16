@@ -1,7 +1,7 @@
 use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError, CosmosMsg, BankMsg, coins};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::{ExecuteResponse, ApplicationSubmission}, query::{get_application_funds, get_proposal_funds_token, get_proposal_funds, query_address_funds, get_address_funds}};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::{ExecuteResponse, ApplicationSubmission}, query::{get_application_funds, get_proposal_funds_token, get_proposal_funds, get_address_funds}};
 
 
 pub fn submit_proposal(
@@ -57,7 +57,7 @@ pub fn fund_proposal_native(
 
         PROPOSAL_FUNDING.save(store, (proposal_id, coin.denom.as_str()), &funding)?;
 
-        CUSTODY_FUNDS.save(store, (sender.clone(), coin.denom.as_str()), &CustodyFunds {
+        CUSTODY_FUNDS.save(store, (&sender, coin.denom.as_str()), &CustodyFunds {
             amount: coin.amount,
             proposal_id,
             locked: false,
@@ -72,13 +72,13 @@ pub fn fund_proposal_native(
 
 pub fn approve_application(
     store: &mut dyn Storage,
-    sender: Addr,
+    sender: &Addr,
     proposal_id: u64,
     application_sender: Addr
 ) -> ExecuteResponse {
 
     let user_funds = CUSTODY_FUNDS
-        .prefix(sender.clone())
+        .prefix(sender)
         .range(store, None, None, Order::Ascending)
         .map(|f| f.unwrap())
         .filter(|f| f.1.proposal_id == proposal_id && !f.1.locked)
@@ -98,7 +98,7 @@ pub fn approve_application(
 
         APPLICATION_FUNDING.save(store, (proposal_id, application_sender.clone(), key.as_str()), &(existing + value.amount))?;
         
-        CUSTODY_FUNDS.save(store, (sender.clone(), key.as_str()), &CustodyFunds {
+        CUSTODY_FUNDS.save(store, (sender, key.as_str()), &CustodyFunds {
             amount: value.amount,
             proposal_id,
             locked: true,
@@ -125,7 +125,6 @@ pub fn register_ica(
     // we are saving empty data here because we handle response of registering ICA in sudo_open_ack method
     
     INTERCHAIN_ACCOUNTS.save(store, key, &None)?;
-    
     Ok(Response::new()
         .add_message(register)
     )
@@ -165,6 +164,10 @@ pub fn verify_application(
 
     let mut application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
 
+    if !application.accepted {
+        return Err(NeutronError::Std(StdError::generic_err("Application is not accepted")));
+    }
+
     if application.auditors.iter().all(|a| a.recipient != &sender) {
         return Err(NeutronError::NonAuthorized{});
     }
@@ -197,6 +200,7 @@ pub fn withdraw_funds(
         return Err(NeutronError::NoFunds{});
     }
 
+    // TODO: 
     let messages : Vec::<CosmosMsg<NeutronMsg>> = funds
         .iter()
         .map(|(token, fund)| send_back_msg( &sender, token, fund))
@@ -226,10 +230,11 @@ fn reward_applicants(
 
     let mut sums: Vec<(String, Uint128)> = Vec::with_capacity(10);
 
-    for ((sender, token), fund) in funds {
+    for ((sender, token), fund) in &funds {
+        
         CUSTODY_FUNDS.remove(store, (sender, token.as_str()));
 
-        if let Some(index) = sums.iter().position(|(t, _)| t == &token) {
+        if let Some(index) = sums.iter().position(|(t, _)| t == token) {
             // Add the fund amount to the existing sum
             sums[index].1 += fund.amount;
         } else {
@@ -241,7 +246,7 @@ fn reward_applicants(
     shareholders(&application).iter().for_each(|gf| {
         sums.iter().for_each(|(token, total)| {
             let amount: Uint128 = *total * Decimal::percent(gf.percent_share.into());
-            CUSTODY_FUNDS.save(store, (gf.recipient.clone(), token.as_str()), &CustodyFunds {
+            CUSTODY_FUNDS.save(store, (&gf.recipient, token.as_str()), &CustodyFunds {
                 amount,
                 proposal_id,
                 remote: None,
@@ -277,9 +282,9 @@ fn auto_agree(
 
     let funds = get_proposal_funds(store, proposal_id, Some(true))?;
 
-    for (token, funding) in funds {
+    for (token, funding) in &funds {
         
-        CUSTODY_FUNDS.update(store, (funding.sender.clone(), token.as_str()), |f| {
+        CUSTODY_FUNDS.update(store, (&funding.sender, token.as_str()), |f| {
             match f {
                 Some(mut f) => {
                     f.locked = true;

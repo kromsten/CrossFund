@@ -80,7 +80,7 @@ pub static PROPOSAL_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("proje
 pub static APPLICATIONS: Map<(u64, Addr), Application> = Map::new("applications");
 pub static APPLICATION_FUNDING: Map<(u64, Addr, &str), Uint128> = Map::new("application_funding");
 
-pub static CUSTODY_FUNDS: Map<(Addr, &str), CustodyFunds>  = Map::new("custody_funds");
+pub static CUSTODY_FUNDS: Map<(&Addr, &str), CustodyFunds>  = Map::new("custody_funds");
 
 pub static LAST_CHECKED_BLOCKS: Map<(u64, &str), u64> = Map::new("last_checked_blocks");
 
@@ -92,6 +92,8 @@ pub static ADDRESS_TO_PROPOSAL: Map<String, u64> = Map::new("address_to_proposal
 
 pub static PROCESSED_TXS: Map<u64, bool> = Map::new("processed_tx");
 
+
+pub const DEFAULT_UPDATE_PERIOD: u64 = 10u64;
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 
