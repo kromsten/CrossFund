@@ -51,7 +51,7 @@ describe('Neutron Hackaton Test', () => {
       let codeId: CodeId;
       test('store contract', async () => {
         codeId = await neutronAccount.storeWasm(
-          NeutronContract.GOODS,
+          NeutronContract.CROSSFUND,
         );
         expect(codeId).toBeGreaterThan(0);
       });
@@ -68,7 +68,7 @@ describe('Neutron Hackaton Test', () => {
     });
 
 
-/*     describe('submitting a proposal', () => {
+     describe('submitting a proposal', () => {
       test('if can submit a proposal', async () => {
         const res = await createProposal(neutronAccount, contractAddress)
         expect(res.code).toBe(0);
@@ -223,6 +223,6 @@ describe('Neutron Hackaton Test', () => {
         expect(hacker[0][1].locked).toBe(false);
         expect(hacker[0][1].amount).toBe('990000');
       })
-    }) */
+    })
 
 });

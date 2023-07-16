@@ -108,54 +108,7 @@ export type PauseInfoResponse = {
 };
 
 export const NeutronContract = {
-
-  GOODS: 'goods.wasm',
-
-  IBC_TRANSFER: 'ibc_transfer.wasm',
-  MSG_RECEIVER: 'msg_receiver.wasm',
-  INTERCHAIN_QUERIES: 'neutron_interchain_queries.wasm',
-  INTERCHAIN_TXS: 'neutron_interchain_txs.wasm',
-  REFLECT: 'reflect.wasm',
-  DISTRIBUTION: 'neutron_distribution.wasm', //
-  DAO_CORE: 'cwd_core.wasm', //
-  DAO_PROPOSAL_SINGLE: 'cwd_proposal_single.wasm', //
-  DAO_PROPOSAL_MULTI: 'cwd_proposal_multiple.wasm', //
-  DAO_PREPROPOSAL_SINGLE: 'cwd_pre_propose_single.wasm',
-  DAO_PREPROPOSAL_MULTI: 'cwd_pre_propose_multiple.wasm',
-  DAO_PREPROPOSAL_OVERRULE: 'cwd_pre_propose_overrule.wasm', //
-  VOTING_REGISTRY: 'neutron_voting_registry.wasm',
-  NEUTRON_VAULT: 'neutron_vault.wasm',
-  RESERVE: 'neutron_reserve.wasm',
-  SUBDAO_CORE: 'cwd_subdao_core.wasm',
-  SUBDAO_PREPROPOSE: 'cwd_subdao_pre_propose_single.wasm',
-  SUBDAO_PREPROPOSE_NO_TIMELOCK:
-    'cwd_subdao_pre_propose_single_no_timelock.wasm',
-  SUBDAO_PROPOSAL: 'cwd_subdao_proposal_single.wasm',
-  SUBDAO_TIMELOCK: 'cwd_subdao_timelock_single.wasm',
-  LOCKDROP_VAULT: 'lockdrop_vault.wasm',
-  ORACLE_HISTORY: 'astroport_oracle.wasm',
-  TGE_CREDITS: 'credits.wasm',
-  TGE_AIRDROP: 'cw20_merkle_airdrop.wasm',
-  CW4_VOTING: '../contracts_thirdparty/cw4_voting.wasm',
-  CW4_GROUP: '../contracts_thirdparty/cw4_group.wasm',
-  CW20_BASE: '../contracts_thirdparty/cw20_base.wasm',
-  TGE_AUCTION: 'neutron_auction.wasm',
-  TGE_LOCKDROP: 'neutron_lockdrop.wasm',
-  TGE_PRICE_FEED_MOCK: 'neutron_price_feed_mock.wasm',
-  ASTRO_PAIR: '../contracts_thirdparty/astroport_pair.wasm',
-  ASTRO_COIN_REGISTRY:
-    '../contracts_thirdparty/astroport_native_coin_registry.wasm',
-  ASTRO_FACTORY: '../contracts_thirdparty/astroport_factory.wasm',
-  ASTRO_TOKEN: '../contracts_thirdparty/astroport_token.wasm',
-  ASTRO_GENERATOR: '../contracts_thirdparty/astroport_generator.wasm',
-  ASTRO_WHITELIST: '../contracts_thirdparty/astroport_whitelist.wasm',
-  ASTRO_VESTING: '../contracts_thirdparty/astroport_vesting.wasm',
-  VESTING_LP: 'vesting_lp.wasm',
-  VESTING_LP_VAULT: 'vesting_lp_vault.wasm',
-  CREDITS_VAULT: 'credits_vault.wasm',
-  VESTING_INVESTORS: 'vesting_investors.wasm',
-  INVESTORS_VESTING_VAULT: 'investors_vesting_vault.wasm',
-  TOKENFACTORY: 'tokenfactory.wasm',
+  CROSSFUND: 'crossfund.wasm',
 };
 
 export type MultiChoiceOption = {

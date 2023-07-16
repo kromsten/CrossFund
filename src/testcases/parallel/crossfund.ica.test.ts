@@ -57,7 +57,7 @@ describe('Neutron Hackaton Test', () => {
       let codeId: CodeId;
       test('store contract', async () => {
         codeId = await neutronAccount.storeWasm(
-          NeutronContract.GOODS,
+          NeutronContract.CROSSFUND,
         );
         expect(codeId).toBeGreaterThan(0);
       });
