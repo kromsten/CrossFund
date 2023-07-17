@@ -1,9 +1,7 @@
-use cosmwasm_std::{from_binary, to_vec, Binary, Order, StdResult, Storage, Addr, Uint128};
-use cw_storage_plus::{Item, Map};
 use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{from_binary, to_vec, Addr, Binary, Order, StdResult, Storage, Uint128};
+use cw_storage_plus::{Item, Map};
 use cw_utils::Expiration;
-
-
 
 #[cw_serde]
 pub struct SudoPayload {
@@ -11,13 +9,11 @@ pub struct SudoPayload {
     pub port_id: String,
 }
 
-
 #[cw_serde]
 pub struct GoodFee {
     pub recipient: Addr,
-    pub percent_share: u8
+    pub percent_share: u8,
 }
-
 
 #[cw_serde]
 pub struct ProjectFunding {
@@ -33,7 +29,7 @@ impl Default for ProjectFunding {
             sender: Addr::unchecked(""),
             amount: Uint128::zero(),
             auto_agree: false,
-            native: true
+            native: true,
         }
     }
 }
@@ -43,25 +39,24 @@ pub struct CustodyFunds {
     pub amount: Uint128,
     pub proposal_id: u64,
     pub locked: bool,
-    pub remote: Option<String>
+    pub remote: Option<String>,
 }
-
 
 #[cw_serde]
 pub struct Proposal {
     pub title: String,
     pub description: String,
-    pub funding: Vec<ProjectFunding>
+    pub funding: Vec<ProjectFunding>,
 }
 
 #[cw_serde]
 pub struct Application {
-    pub applicants: Vec<GoodFee>, 
+    pub applicants: Vec<GoodFee>,
     pub auditors: Vec<GoodFee>,
     pub deliver_by: Expiration,
 
     pub accepted: bool,
-    pub verifications: Vec<Addr>
+    pub verifications: Vec<Addr>,
 }
 
 #[cw_serde]
@@ -72,18 +67,16 @@ pub struct Transfer {
     pub amount: String,
 }
 
-
-pub static PROPOSAL_INDEX : Item<u64> = Item::new("proposal_index");
+pub static PROPOSAL_INDEX: Item<u64> = Item::new("proposal_index");
 pub static PROPOSALS: Map<u64, Proposal> = Map::new("proposals");
-pub static PROPOSAL_FUNDING: Map<(u64, &str), ProjectFunding>  = Map::new("project_funding");
+pub static PROPOSAL_FUNDING: Map<(u64, &str), ProjectFunding> = Map::new("project_funding");
 
 pub static APPLICATIONS: Map<(u64, Addr), Application> = Map::new("applications");
 pub static APPLICATION_FUNDING: Map<(u64, Addr, &str), Uint128> = Map::new("application_funding");
 
-pub static CUSTODY_FUNDS: Map<(&Addr, &str), CustodyFunds>  = Map::new("custody_funds");
+pub static CUSTODY_FUNDS: Map<(&Addr, &str), CustodyFunds> = Map::new("custody_funds");
 
 pub static LAST_CHECKED_BLOCKS: Map<(u64, &str), u64> = Map::new("last_checked_blocks");
-
 
 pub static INTERCHAIN_ACCOUNTS: Map<String, Option<(String, String)>> =
     Map::new("interchain_accounts");
@@ -92,8 +85,7 @@ pub static ADDRESS_TO_PROPOSAL: Map<String, u64> = Map::new("address_to_proposal
 
 pub static PROCESSED_TXS: Map<u64, bool> = Map::new("processed_tx");
 
-
-pub const DEFAULT_UPDATE_PERIOD: u64 = 10u64;
+pub const DEFAULT_UPDATE_PERIOD: u64 = 6u64;
 
 pub const SUDO_PAYLOAD_REPLY_ID: u64 = 1;
 
@@ -107,7 +99,6 @@ pub const ACKNOWLEDGEMENT_RESULTS: Map<(String, u64), AcknowledgementResult> =
     Map::new("acknowledgement_results");
 
 pub const ERRORS_QUEUE: Map<u32, String> = Map::new("errors_queue");
-
 
 #[cw_serde]
 pub enum AcknowledgementResult {
@@ -162,5 +153,3 @@ pub fn save_sudo_payload(
 ) -> StdResult<()> {
     SUDO_PAYLOAD.save(store, (channel_id, seq_id), &to_vec(&payload)?)
 }
-
-

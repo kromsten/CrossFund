@@ -1,24 +1,20 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Response};
 use cw_utils::Expiration;
-use neutron_sdk::{NeutronResult, bindings::msg::NeutronMsg};
+use neutron_sdk::{bindings::msg::NeutronMsg, NeutronResult};
 
-use crate::storage::{Application, ProjectFunding, AcknowledgementResult, CustodyFunds, GoodFee};
+use crate::storage::{AcknowledgementResult, Application, CustodyFunds, GoodFee, ProjectFunding};
 
-pub type ExecuteResponse = NeutronResult<Response<NeutronMsg>>;
-
+pub type NeutronResponse = NeutronResult<Response<NeutronMsg>>;
 
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-
     #[returns(AllProposalResponse)]
     AllProposals {},
 
     #[returns(FullProposalInfo)]
-    Proposal {
-        proposal_id: u64,
-    },
+    Proposal { proposal_id: u64 },
 
     #[returns(Vec<(String, CustodyFunds)>)]
     AddressFunds {
@@ -26,24 +22,18 @@ pub enum QueryMsg {
         skip_locked: Option<bool>,
     },
 
-
     #[returns((String, String))]
     InterchainAccountAddress {
         connection_id: String,
         proposal_id: u64,
     },
-    
+
     #[returns((String, String))]
-    InterchainAccountAddressFromContract {
-        proposal_id: u64,
-    },
-    
+    InterchainAccountAddressFromContract { proposal_id: u64 },
+
     #[returns(Option<AcknowledgementResult>)]
-    AcknowledgementResult {
-        sequence_id: u64,
-        proposal_id: u64,
-    },
-    
+    AcknowledgementResult { sequence_id: u64, proposal_id: u64 },
+
     #[returns(Vec<(Vec<u8>, String)>)]
     ErrorsQueue {},
 }
@@ -58,15 +48,15 @@ pub struct InstantiateMsg {}
 pub enum ExecuteMsg {
     SubmitProposal {
         title: String,
-        description: String
+        description: String,
     },
     SubmitApplication {
         proposal_id: u64,
-        application: ApplicationSubmission
+        application: ApplicationSubmission,
     },
     FundProposal {
         proposal_id: u64,
-        auto_agree: Option<bool>
+        auto_agree: Option<bool>,
     },
     RegisterICA {
         proposal_id: u64,
@@ -85,20 +75,23 @@ pub enum ExecuteMsg {
     VerifyApplication {
         proposal_id: u64,
         application_sender: Addr,
-        stop_at: Option<u64>
+        stop_at: Option<u64>,
+    },
+
+    TempRegister {
+        connection_id: String,
+        recipient: String,
+        update_period: u64,
+        min_height: Option<u64>,
     },
 }
 
-
 #[cw_serde]
 pub struct ApplicationSubmission {
-    pub applicants: Vec<GoodFee>, 
+    pub applicants: Vec<GoodFee>,
     pub auditors: Vec<GoodFee>,
     pub deliver_by: Expiration,
 }
-
-
-
 
 #[cw_serde]
 pub struct FullProposalInfo {
@@ -106,12 +99,10 @@ pub struct FullProposalInfo {
     pub title: String,
     pub description: String,
     pub funding: Vec<(String, ProjectFunding)>,
-    pub applications: Vec<(Addr, Application)>
+    pub applications: Vec<(Addr, Application)>,
 }
-
 
 #[cw_serde]
 pub struct AllProposalResponse {
-    pub proposals: Vec<FullProposalInfo>
+    pub proposals: Vec<FullProposalInfo>,
 }
-

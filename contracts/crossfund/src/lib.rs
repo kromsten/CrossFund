@@ -3,12 +3,13 @@
 extern crate core;
 
 pub mod contract;
-pub mod msg;
 pub mod execute;
-pub mod utils;
+pub mod msg;
 pub mod query;
-pub mod sudo;
 pub mod storage;
+pub mod sudo;
+pub mod temp;
+pub mod utils;
 
 #[allow(clippy::unwrap_used)]
 #[cfg(test)]

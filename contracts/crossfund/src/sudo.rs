@@ -1,23 +1,44 @@
-use cosmos_sdk_proto::cosmos::{tx::v1beta1::{TxRaw, TxBody}, bank::v1beta1::MsgSend};
+use cosmos_sdk_proto::cosmos::{
+    bank::v1beta1::MsgSend,
+    tx::v1beta1::{TxBody, TxRaw},
+};
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{DepsMut, Env, StdResult, Response, StdError, Binary, Reply, Storage, Uint128, Addr, Event};
-use neutron_sdk::{sudo::msg::RequestPacket, interchain_txs::helpers::{get_proposal_id, get_port_id}, bindings::{msg::MsgSubmitTxResponse, query::{NeutronQuery, QueryRegisteredQueryResponse}, types::Height}, NeutronResult, interchain_queries::{get_registered_query, types::{TransactionFilterItem, TransactionFilterOp, TransactionFilterValue}, v045::{types::{RECIPIENT_FIELD, COSMOS_SDK_TRANSFER_MSG_URL}, new_register_transfers_query_msg}}, NeutronError};
+use cosmwasm_std::{
+    Addr, Binary, DepsMut, Env, Event, Reply, Response, StdError, StdResult, Storage, Uint128,
+};
+use neutron_sdk::{
+    bindings::{
+        msg::MsgSubmitTxResponse,
+        query::{NeutronQuery, QueryRegisteredQueryResponse},
+        types::Height,
+    },
+    interchain_queries::{
+        get_registered_query,
+        types::{TransactionFilterItem, TransactionFilterOp, TransactionFilterValue},
+        v045::{
+            new_register_transfers_query_msg,
+            types::{COSMOS_SDK_TRANSFER_MSG_URL, RECIPIENT_FIELD},
+        },
+    },
+    interchain_txs::helpers::{get_port_id, get_proposal_id},
+    sudo::msg::RequestPacket,
+    NeutronError, NeutronResult,
+};
 use prost::Message;
 
 const MAX_ALLOWED_MESSAGES: usize = 20;
 const MAX_ALLOWED_TRANSFER: u128 = u128::MAX;
 
-
-use crate::{storage::{
-    INTERCHAIN_ACCOUNTS, 
-    add_error_to_queue, 
-    read_sudo_payload, 
-    ACKNOWLEDGEMENT_RESULTS, 
-    AcknowledgementResult, 
-    save_sudo_payload, 
-    read_reply_payload, Transfer, PROCESSED_TXS, PROPOSAL_FUNDING, CUSTODY_FUNDS, CustodyFunds, ADDRESS_TO_PROPOSAL, DEFAULT_UPDATE_PERIOD
-}, utils::hash_data, msg::ExecuteResponse};
-
+use crate::{
+    msg::NeutronResponse,
+    storage::{
+        add_error_to_queue, read_reply_payload, read_sudo_payload, save_sudo_payload,
+        AcknowledgementResult, CustodyFunds, Transfer, ACKNOWLEDGEMENT_RESULTS,
+        ADDRESS_TO_PROPOSAL, CUSTODY_FUNDS, DEFAULT_UPDATE_PERIOD, INTERCHAIN_ACCOUNTS,
+        PROCESSED_TXS, PROPOSAL_FUNDING,
+    },
+    utils::hash_data,
+};
 
 #[cw_serde]
 struct OpenAckVersion {
@@ -29,24 +50,21 @@ struct OpenAckVersion {
     tx_type: String,
 }
 
-// handler
 pub fn sudo_open_ack(
-    deps: DepsMut,
+    store: &mut dyn Storage,
     env: Env,
     port_id: String,
     _channel_id: String,
     _counterparty_channel_id: String,
     counterparty_version: String,
-) -> ExecuteResponse {
-    // The version variable contains a JSON value with multiple fields,
-    // including the generated account address.
+) -> NeutronResponse {
     let parsed_version: Result<OpenAckVersion, _> =
         serde_json_wasm::from_str(counterparty_version.as_str());
 
     // Update the storage record associated with the interchain account.
     if let Ok(parsed_version) = parsed_version {
         INTERCHAIN_ACCOUNTS.save(
-            deps.storage,
+            store,
             port_id.clone(),
             &Some((
                 parsed_version.address.clone(),
@@ -54,32 +72,36 @@ pub fn sudo_open_ack(
             )),
         )?;
         ADDRESS_TO_PROPOSAL.save(
-            deps.storage, 
-            parsed_version.address.clone(), 
-            &get_proposal_id(port_id.as_str())
+            store,
+            parsed_version.address.clone(),
+            &get_proposal_id(port_id.as_str()),
         )?;
-        
+
+        //return Ok(Response::default());
+
         return Ok(
-            Response::default()
-            .add_event(Event::new("register_transfers_query").add_attribute("keyy", "vAlYe"))
-            .add_message(
-                new_register_transfers_query_msg(
-                    parsed_version.controller_connection_id, 
-                    parsed_version.address, 
-                    DEFAULT_UPDATE_PERIOD, 
-                    Some(env.block.height)
-                )?
-            )
+            Response::new().add_message(new_register_transfers_query_msg(
+                parsed_version.host_connection_id,
+                parsed_version.address,
+                DEFAULT_UPDATE_PERIOD,
+                Some(env.block.height),
+            )?),
         );
     }
-    Err( NeutronError::Std(StdError::generic_err("Can't parse counterparty_version")))
+    Err(NeutronError::Std(StdError::generic_err(
+        "Can't parse counterparty_version",
+    )))
 }
 
-
-
-pub fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResult<Response> {
+pub fn sudo_error(
+    deps: DepsMut<NeutronQuery>,
+    request: RequestPacket,
+    details: String,
+) -> NeutronResponse {
     deps.api
-        .debug(format!("WASMDEBUG: sudo timeout request: {:?}", request).as_str());
+        .debug(format!("WASMDEBUG: sudo error: {}", details).as_str());
+    deps.api
+        .debug(format!("WASMDEBUG: request packet: {:?}", request).as_str());
 
     let seq_id = request
         .sequence
@@ -88,17 +110,8 @@ pub fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResu
     let channel_id = request
         .source_channel
         .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
-
-    // update but also check that we don't update same seq_id twice
-    // NOTE: NO ERROR IS RETURNED HERE. THE CHANNEL LIVES ON.
-    // In this particular example, this is a matter of developer's choice. Not being able to read
-    // the payload here means that there was a problem with the contract while submitting an
-    // interchain transaction. You can decide that this is not worth killing the channel,
-    // write an error log and / or save the acknowledgement to an errors queue for later manual
-    // processing. The decision is based purely on your application logic.
-    // Please be careful because it may lead to an unexpected state changes because state might
-    // has been changed before this call and will not be reverted because of supressed error.
     let payload = read_sudo_payload(deps.storage, channel_id, seq_id).ok();
+
     if let Some(payload) = payload {
         // update but also check that we don't update same seq_id twice
         ACKNOWLEDGEMENT_RESULTS.update(
@@ -107,7 +120,7 @@ pub fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResu
             |maybe_ack| -> StdResult<AcknowledgementResult> {
                 match maybe_ack {
                     Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
-                    None => Ok(AcknowledgementResult::Timeout(payload.message)),
+                    None => Ok(AcknowledgementResult::Error((payload.message, details))),
                 }
             },
         )?;
@@ -120,7 +133,35 @@ pub fn sudo_timeout(deps: DepsMut, _env: Env, request: RequestPacket) -> StdResu
     Ok(Response::default())
 }
 
+pub fn sudo_timeout(store: &mut dyn Storage, request: RequestPacket) -> NeutronResponse {
+    let seq_id = request
+        .sequence
+        .ok_or_else(|| StdError::generic_err("sequence not found"))?;
 
+    let channel_id = request
+        .source_channel
+        .ok_or_else(|| StdError::generic_err("channel_id not found"))?;
+
+    let payload = read_sudo_payload(store, channel_id, seq_id).ok();
+    if let Some(payload) = payload {
+        // update but also check that we don't update same seq_id twice
+        ACKNOWLEDGEMENT_RESULTS.update(
+            store,
+            (payload.port_id, seq_id),
+            |maybe_ack| -> StdResult<AcknowledgementResult> {
+                match maybe_ack {
+                    Some(_ack) => Err(StdError::generic_err("trying to update same seq_id")),
+                    None => Ok(AcknowledgementResult::Timeout(payload.message)),
+                }
+            },
+        )?;
+    } else {
+        let error_msg = "WASMDEBUG: Error: Unable to read sudo payload";
+        add_error_to_queue(store, error_msg.to_string());
+    }
+
+    Ok(Response::default())
+}
 
 pub fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     let payload = read_reply_payload(deps.storage)?;
@@ -141,16 +182,13 @@ pub fn prepare_sudo_payload(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResu
     Ok(Response::new())
 }
 
-
-
-
 pub fn sudo_tx_query_result(
     deps: DepsMut<NeutronQuery>,
     env: Env,
     query_id: u64,
     _height: Height,
     data: Binary,
-) -> NeutronResult<Response> {
+) -> NeutronResponse {
     // Decode the transaction data
     let tx: TxRaw = TxRaw::decode(data.as_slice())?;
     let body: TxBody = TxBody::decode(tx.body_bytes.as_slice())?;
@@ -160,7 +198,6 @@ pub fn sudo_tx_query_result(
     if PROCESSED_TXS.has(deps.storage, digest) {
         return Ok(Response::default());
     }
-
 
     let auto_agree = body.memo == "auto_agree";
 
@@ -203,11 +240,10 @@ pub fn sudo_tx_query_result(
             }
 
             check_deposits_size(&deposits)?;
-    
-            for deposit in &deposits {
 
+            for deposit in &deposits {
                 let load = ADDRESS_TO_PROPOSAL.may_load(deps.storage, deposit.recipient.clone())?;
-                
+
                 if load.is_none() {
                     // TODO: Refund
                     continue;
@@ -220,17 +256,14 @@ pub fn sudo_tx_query_result(
                     &deposit.denom,
                     Uint128::from(deposit.amount.parse::<u128>().unwrap()),
                     load.unwrap(),
-                    auto_agree
+                    auto_agree,
                 )?;
             }
 
             Ok(Response::default())
         }
-
     }
 }
-
-
 
 fn fund_proposal_remote(
     store: &mut dyn Storage,
@@ -239,14 +272,15 @@ fn fund_proposal_remote(
     denom: &str,
     amount: Uint128,
     proposal_id: u64,
-    auto_agree: bool
+    auto_agree: bool,
 ) -> StdResult<()> {
-
     if amount == Uint128::zero() {
         return Err(StdError::generic_err("zero amount"));
     }
 
-    let mut funding = PROPOSAL_FUNDING.load(store, (proposal_id, denom)).unwrap_or_default();
+    let mut funding = PROPOSAL_FUNDING
+        .load(store, (proposal_id, denom))
+        .unwrap_or_default();
     funding.amount += amount;
     funding.auto_agree = auto_agree;
     funding.sender = Addr::unchecked(sender);
@@ -254,27 +288,30 @@ fn fund_proposal_remote(
     PROPOSAL_FUNDING.save(store, (proposal_id.clone(), sender.as_ref()), &funding)?;
 
     let port = get_port_id(
-        env.contract.address.as_str(), 
-        &proposal_id.clone().to_string()
+        env.contract.address.as_str(),
+        &proposal_id.clone().to_string(),
     );
 
-    CUSTODY_FUNDS.save(store, (&Addr::unchecked(sender), denom), &CustodyFunds {
-        amount,
-        proposal_id,
-        locked: false,
-        remote: Some(port)
-    })?;
+    CUSTODY_FUNDS.save(
+        store,
+        (&Addr::unchecked(sender), denom),
+        &CustodyFunds {
+            amount,
+            proposal_id,
+            locked: false,
+            remote: Some(port),
+        },
+    )?;
 
     Ok(())
 }
-
 
 fn recipient_deposits_from_tx_body(
     tx_body: TxBody,
     recipient: &str,
 ) -> NeutronResult<Vec<Transfer>> {
     let mut deposits: Vec<Transfer> = vec![];
-    
+
     for msg in tx_body.messages.iter().take(MAX_ALLOWED_MESSAGES) {
         // Skip all messages in this transaction that are not Send messages.
         if msg.type_url != *COSMOS_SDK_TRANSFER_MSG_URL.to_string() {
@@ -284,7 +321,6 @@ fn recipient_deposits_from_tx_body(
         let transfer_msg: MsgSend = MsgSend::decode(msg.value.as_slice())?;
         if transfer_msg.to_address == recipient {
             for coin in transfer_msg.amount {
-
                 deposits.push(Transfer {
                     sender: transfer_msg.from_address.clone(),
                     amount: coin.amount.clone(),
@@ -296,7 +332,6 @@ fn recipient_deposits_from_tx_body(
     }
     Ok(deposits)
 }
-
 
 fn check_deposits_size(deposits: &Vec<Transfer>) -> StdResult<()> {
     for deposit in deposits {

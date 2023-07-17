@@ -1,14 +1,14 @@
 use cosmwasm_std::{Storage, Addr, MessageInfo, Uint128, Response, Order, Env, StdResult, Decimal, StdError, CosmosMsg, BankMsg, coins};
 use neutron_sdk::{NeutronError, bindings::msg::NeutronMsg, interchain_txs::helpers::get_port_id};
 
-use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::{ExecuteResponse, ApplicationSubmission}, query::{get_application_funds, get_proposal_funds_token, get_proposal_funds, get_address_funds}};
+use crate::{storage::{PROPOSALS, PROPOSAL_INDEX, Application, PROPOSAL_FUNDING, Proposal, CUSTODY_FUNDS, APPLICATIONS, CustodyFunds, APPLICATION_FUNDING, INTERCHAIN_ACCOUNTS}, utils::{valid_application, shareholders}, msg::{NeutronResponse, ApplicationSubmission}, query::{get_application_funds, get_proposal_funds_token, get_proposal_funds, get_address_funds}};
 
 
 pub fn submit_proposal(
     store: &mut dyn Storage,
     title: String,
     description: String
-) -> ExecuteResponse {
+) -> NeutronResponse {
     let index = PROPOSAL_INDEX.load(store).unwrap_or(0);
     PROPOSALS.save(store, index.clone(), &Proposal { title, description, funding: Vec::new() })?;
     PROPOSAL_INDEX.save(store, &(index+1))?;
@@ -22,7 +22,7 @@ pub fn submit_application(
     sender: Addr,
     proposal_id: u64,
     application: ApplicationSubmission
-) -> ExecuteResponse {
+) -> NeutronResponse {
     if !valid_application(&application, &env.block) {
         return Err(NeutronError::InvalidApplication);
     }
@@ -42,7 +42,7 @@ pub fn fund_proposal_native(
     info: MessageInfo,
     proposal_id: u64,
     auto_agree: Option<bool>
-) -> ExecuteResponse {
+) -> NeutronResponse {
 
     let sender = info.sender;
 
@@ -75,7 +75,7 @@ pub fn approve_application(
     sender: &Addr,
     proposal_id: u64,
     application_sender: Addr
-) -> ExecuteResponse {
+) -> NeutronResponse {
 
     let user_funds = CUSTODY_FUNDS
         .prefix(sender)
@@ -116,7 +116,7 @@ pub fn register_ica(
     env: Env,
     connection_id: String,
     proposal_id: u64,
-) -> ExecuteResponse {
+) -> NeutronResponse {
 
     let register =
         NeutronMsg::register_interchain_account(connection_id, proposal_id.clone().to_string());
@@ -137,7 +137,7 @@ pub fn accept_application(
     sender: Addr,
     proposal_id: u64,
     application_sender: Addr,
-) -> ExecuteResponse {
+) -> NeutronResponse {
 
     let mut application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
 
@@ -160,7 +160,7 @@ pub fn verify_application(
     sender: Addr,
     proposal_id: u64,
     application_sender: Addr,
-) -> ExecuteResponse {
+) -> NeutronResponse {
 
     let mut application = APPLICATIONS.load(store, (proposal_id, application_sender.clone()))?;
 
@@ -192,7 +192,7 @@ pub fn verify_application(
 pub fn withdraw_funds(
     store: &mut dyn Storage,
     sender: Addr,
-) -> ExecuteResponse {
+) -> NeutronResponse {
 
     let funds = get_address_funds(store, &sender, true)?;
 
