@@ -151,7 +151,7 @@ describe('Neutron Hackaton Test', () => {
           expect(balance.length | funding.length).toBe(0);
         });
 
-        test("that contract sees the transfer after a while (FAILS)", async () => {
+        test("that contract sees the transfer after a while", async () => {
 
           await neutronChain.blockWaiter.waitBlocks(14)
           const proposal = await queryProposalById(neutronChain, contractAddress, 0)
