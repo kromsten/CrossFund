@@ -100,7 +100,7 @@ Name your built wasm file `crossfund.wasm`and put it inside `contracts` director
 
 ## Running integration tests
 Follow this guide for setting up a local envieronment
-https://docs.neutron.org/tutorials/integration_tests
+https://docs.neutron.org/tutorials/integration-tests
 
 After finishing installatiion you can put the directory of this repository as a sibling to other 4 if you wish to run the tests with docker using
 `yarn test`
